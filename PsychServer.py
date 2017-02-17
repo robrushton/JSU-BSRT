@@ -147,9 +147,8 @@ def unauthorized_callback():
 @app.route('/')
 @login_required
 def index():
-    roles = db.session.query(Role.role_name)
-    token = generate_confirmation_token('test@test.com', app.secret_key, app.secret_key)
-    return render_template('index.html', roles=roles, test_token=token)
+    flashes = []
+    return render_template('index.html', flashes=flashes)
 
 
 @app.route('/login', methods=['GET', 'POST'])

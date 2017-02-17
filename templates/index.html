@@ -14,5 +14,10 @@
             student
         {% endif %}
         <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
+        <div class="flash-messages">
+            {% for f in flashes %}
+                <li>{{ f }}</li>
+            {% endfor %}
+        </div>
     </body>
 </html>
