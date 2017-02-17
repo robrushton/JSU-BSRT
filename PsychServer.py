@@ -148,7 +148,9 @@ def unauthorized_callback():
 @login_required
 def index():
     flashes = []
-    return render_template('index.html', flashes=flashes)
+    listings = db.session.query(Research.research_name, Research.research_credits, Research.research_openings, ResearchSlot.start_time, ResearchSlot.end_time)\
+        .filter(ResearchSlot.research_id == Research.research_id).all()
+    return render_template('index.html', listings=listings, flashes=flashes)
 
 
 @app.route('/login', methods=['GET', 'POST'])
