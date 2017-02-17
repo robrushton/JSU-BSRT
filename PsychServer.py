@@ -112,9 +112,11 @@ def user_loader(email):
 
     user = User()
     user.id = email
-    user_lookup = db.session.query(Users.user_role).filter_by(user_email=email).first()
-    role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).first()
+    role_lookup = db.session.query(Role.role_name)\
+        .filter(Users.user_email == email)\
+        .filter(Role.role_id == Users.user_role).first()
     user.role = role_lookup[0]
+
     return user
 
 
@@ -126,8 +128,9 @@ def request_loader(req):
 
     user = User()
     user.id = email
-    user_lookup = db.session.query(Users.user_role).filter_by(user_email=email).first()
-    role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).first()
+    role_lookup = db.session.query(Role.role_name) \
+        .filter(Users.user_email == email) \
+        .filter(Role.role_id == Users.user_role).first()
     user.role = role_lookup[0]
 
     return user
@@ -291,7 +294,6 @@ def reset_password(token):
     flashes = []
     if request.method == 'GET':
         email = confirm_timed_token(token, app.secret_key)
-        print(email)
         if not email:
             return redirect(url_for('send_reset'))
         else:
@@ -300,9 +302,9 @@ def reset_password(token):
             else:
                 return render_template('reset_password.html', flashes=flashes)
     if request.method == 'POST':
-        email = confirm_token(token, Constants.RESET_SALT, app.secret_key)
+        email = confirm_timed_token(token, app.secret_key)
         if not email:
-            return redirect(url_for('reset_password'))
+            return redirect(url_for('send_reset'))
         else:
             if db.session.query(Users.user_email).filter_by(user_email=email).count() == 1:
                 password = request.form.get('password')
