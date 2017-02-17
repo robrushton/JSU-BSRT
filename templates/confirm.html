@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Sign Up</title>
+    </head>
+    <body>
+        <div class="login-page">
+            <div class="banner">
+                <label class="banner-label">JSU Psychology Research</label>
+            </div>
+            <div class="form">
+                <form class="register-form" method="post">
+                    <input type="text" name="email" placeholder="JSU Email Address"/><br>
+                    <button type="submit" id="confirm-button">Confirm</button><br>
+                    <p class="message">Already Registered? <a href="{{ url_for('login') }}">Sign In</a></p><br>
+                </form>
+            </div>
+            <div class="flash-messages">
+                {% for f in flashes %}
+                    <li>{{ f }}</li>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

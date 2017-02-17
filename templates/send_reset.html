@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Reset Password</title>
+    </head>
+    <body>
+        <div class="send-reset-page">
+            <div class="form">
+                <form class="send-reset-form" method="post">
+                    Enter the email associated with your account:<br>
+                    <input type="text" name="email" placeholder="Email"/><br>
+                    <button type="submit">Send</button><br>
+                    <p class="message">Remember Your Password? <a href="{{ url_for('login') }}">Back To Login</a></p><br>
+                </form>
+            </div>
+            <div class="flash-messages">
+                {% for f in flashes %}
+                    <li>{{ f }}</li>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

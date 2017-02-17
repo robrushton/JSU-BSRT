@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+    </head>
+    <body>
+        <div class="login-page">
+            <div class="banner">
+                <label class="banner-label">JSU Psychology Research</label>
+            </div>
+            <div class="form">
+                <form class="login-form" method="post">
+                    <input type="text" name="email" placeholder="Email"/><br>
+                    <input type="password" name="password" placeholder="Password"/><br>
+                    <button type="submit">Login</button><br>
+                    <p class="message">Not Registered? <a href="{{ url_for('confirm') }}">Create An Account</a></p><br>
+                    <p class="message">Forget Your Password? <a href="{{ url_for('send_reset') }}">Reset Password</a></p><br>
+                </form>
+            </div>
+            <div class="flash-messages">
+                {% for f in flashes %}
+                    <li>{{ f }}</li>
+                {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>

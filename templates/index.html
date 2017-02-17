@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Test</title>
+    </head>
+    <body>
+        Logged in with {{ current_user.id }}<br>
+        You are a(n): {{ current_user.role }}<br>
+        Role Check:
+        {% if current_user.role == 'professor' %}
+            professor
+        {%  elif current_user.role == 'student' %}
+            student
+        {% endif %}
+        <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
+    </body>
+</html>
