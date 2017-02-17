@@ -330,4 +330,4 @@ def logout():
 
 if __name__ == '__main__':
     app.secret_key = os.urandom(32)
-    app.run(port=80, host='0.0.0.0')
+    app.run(port=80)
