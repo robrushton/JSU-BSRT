@@ -6,9 +6,16 @@
     </head>
     <body>
         Logged in with {{ current_user.id }}<br>
-        {% for l in listings %}
-            <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }} {{ l[8] }}</li>
-        {% endfor %}
+        {% if current_user.role == 'student' %}
+            {% for l in listings %}
+                <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }} {{ l[8] }}</li>
+            {% endfor %}
+        {% endif %}
+        {% if current_user.role == 'professor' %}
+            {% for l in listings %}
+                <li></li>
+            {% endfor %}
+        {% endif %}
         <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
         <div class="flash-messages">
             {% for f in flashes %}

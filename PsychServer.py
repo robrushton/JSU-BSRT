@@ -151,18 +151,21 @@ def unauthorized_callback():
 def user_profile():
     flashes = []
     if request.method == 'GET':
-        initl = db.session.query(Research.research_name, Research.research_facilitator,
-                                 Research.research_description, Research.research_credits,
-                                 Research.research_openings, ResearchSlot.start_time,
-                                 ResearchSlot.end_time, StudentResearch.is_completed) \
-            .filter(Users.user_email == current_user.id) \
-            .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
-            .filter(ResearchSlot.research_id == Research.research_id) \
-            .subquery()
-        final_listings = db.session.query(Users.user_email, initl) \
-            .join(initl, Users.user_id == initl.c.ResearchFacilitator) \
-            .all()
-        return render_template('user_profile.html', listings=final_listings, flashes=flashes)
+        if current_user.role == 'student':
+            initial_listings = db.session.query(Research.research_name, Research.research_facilitator,
+                                                Research.research_description, Research.research_credits,
+                                                Research.research_openings, ResearchSlot.start_time,
+                                                ResearchSlot.end_time, StudentResearch.is_completed) \
+                .filter(Users.user_email == current_user.id) \
+                .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
+                .filter(ResearchSlot.research_id == Research.research_id) \
+                .subquery()
+            final_listings = db.session.query(Users.user_email, initial_listings) \
+                .join(initial_listings, Users.user_id == initial_listings.c.ResearchFacilitator) \
+                .all()
+            return render_template('user_profile.html', listings=final_listings, flashes=flashes)
+        elif current_user.role == 'professor':
+            return render_template('user_profile.html', listings=initial_listings, flashes=flashes)
     if request.method == 'POST':
         return render_template('user_profile.html', flashes=flashes)
     return render_template('user_profile.html', flashes=flashes)
