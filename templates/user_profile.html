@@ -2,15 +2,13 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Research Listings</title>
+        <title>User Profile</title>
     </head>
     <body>
         Logged in with {{ current_user.id }}<br>
-        <div class="research-listings">
-            {% for l in listings %}
-                <li>{{ l[0] }}  {{ l[1] }}  {{ l[2] }}  {{ l[3] }}  {{ l[4] }}</li>
-            {% endfor %}
-        </div>
+        {% for l in listings %}
+            <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }} {{ l[8] }}</li>
+        {% endfor %}
         <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
         <div class="flash-messages">
             {% for f in flashes %}

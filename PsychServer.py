@@ -1,13 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_login import login_required, LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from Utilities import generate_confirmation_token, confirm_token, send_email,generate_timed_confirmation_token, confirm_timed_token
+from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
+    confirm_timed_token
 from hashlib import sha256
 import Constants
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}:{}/{}'\
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}:{}/{}' \
     .format(Constants.DB_USERNAME, Constants.DB_PASSWORD, Constants.DB_IP, Constants.DB_PORT, Constants.DB_NAME)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -85,7 +86,8 @@ class ResearchSlot(db.Model):
 
 class StudentResearch(db.Model):
     __tablename__ = 'StudentResearch'
-    student_research_id = db.Column('StudentResearchID', db.BIGINT, nullable=False, autoincrement=True, primary_key=True)
+    student_research_id = db.Column('StudentResearchID', db.BIGINT, nullable=False, autoincrement=True,
+                                    primary_key=True)
     user_id = db.Column('UserID', db.BIGINT, db.ForeignKey(Users.user_id), nullable=False)
     research_slot_id = db.Column('ResearchSlotID', db.BIGINT, db.ForeignKey(ResearchSlot.research_id), nullable=False)
     is_completed = db.Column('IsCompleted', db.BOOLEAN, nullable=False)
@@ -112,8 +114,8 @@ def user_loader(email):
 
     user = User()
     user.id = email
-    role_lookup = db.session.query(Role.role_name)\
-        .filter(Users.user_email == email)\
+    role_lookup = db.session.query(Role.role_name) \
+        .filter(Users.user_email == email) \
         .filter(Role.role_id == Users.user_role).first()
     user.role = role_lookup[0]
 
@@ -144,13 +146,26 @@ def unauthorized_callback():
 # Page Routes/Logic ------------------------------------------------------------------
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 @login_required
-def index():
+def user_profile():
     flashes = []
-    listings = db.session.query(Research.research_name, Research.research_credits, Research.research_openings, ResearchSlot.start_time, ResearchSlot.end_time)\
-        .filter(ResearchSlot.research_id == Research.research_id).all()
-    return render_template('index.html', listings=listings, flashes=flashes)
+    if request.method == 'GET':
+        initl = db.session.query(Research.research_name, Research.research_facilitator,
+                                 Research.research_description, Research.research_credits,
+                                 Research.research_openings, ResearchSlot.start_time,
+                                 ResearchSlot.end_time, StudentResearch.is_completed) \
+            .filter(Users.user_email == current_user.id) \
+            .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
+            .filter(ResearchSlot.research_id == Research.research_id) \
+            .subquery()
+        final_listings = db.session.query(Users.user_email, initl) \
+            .join(initl, Users.user_id == initl.c.ResearchFacilitator) \
+            .all()
+        return render_template('user_profile.html', listings=final_listings, flashes=flashes)
+    if request.method == 'POST':
+        return render_template('user_profile.html', flashes=flashes)
+    return render_template('user_profile.html', flashes=flashes)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -177,7 +192,7 @@ def login():
             role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).first()
             user.role = role_lookup[0]
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('user_profile'))
         else:
             flashes.append('Incorrect Login Information!')
             return render_template('login.html', flashes=flashes)
@@ -199,7 +214,7 @@ def confirm():
                 subject = 'JSU Psychology Research Account Setup'
                 body = 'Click the link below to setup your account:\n\n' \
                        'http://{}/signup/{}' \
-                       '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.'\
+                       '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.' \
                     .format(Constants.SERVER_IP, token)
                 email_text = 'From: {}\n' \
                              'To: {}\n' \
@@ -317,7 +332,8 @@ def reset_password(token):
                 else:
                     salt = sha256(email.encode('utf-8')).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
-                    db.session.query(Users.user_email).filter_by(user_email=email).update({'user_pw_hash': password_hash})
+                    db.session.query(Users.user_email).filter_by(user_email=email).update(
+                        {'user_pw_hash': password_hash})
                     db.session.commit()
                     return redirect(url_for('login'))
     return render_template('reset_password.html', flashes=flashes)
