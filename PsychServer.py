@@ -154,8 +154,8 @@ def user_profile():
         if current_user.role == 'student':
             initial_listings = db.session.query(Research.research_name, Research.research_facilitator,
                                                 Research.research_description, Research.research_credits,
-                                                Research.research_openings, ResearchSlot.start_time,
-                                                ResearchSlot.end_time, StudentResearch.is_completed) \
+                                                ResearchSlot.start_time, ResearchSlot.end_time,
+                                                StudentResearch.is_completed) \
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
