@@ -165,7 +165,7 @@ def user_profile():
                 .all()
             return render_template('user_profile.html', listings=final_listings, flashes=flashes)
         elif current_user.role == 'professor':
-            return render_template('user_profile.html', listings=initial_listings, flashes=flashes)
+            return render_template('user_profile.html', flashes=flashes)
     if request.method == 'POST':
         return render_template('user_profile.html', flashes=flashes)
     return render_template('user_profile.html', flashes=flashes)
