@@ -55,7 +55,6 @@ class Research(db.Model):
     research_facilitator = db.Column('ResearchFacilitator', db.BIGINT, db.ForeignKey(Users.user_id), nullable=False)
     research_description = db.Column('ResearchDescription', db.VARCHAR, nullable=False)
     research_credits = db.Column('ResearchCredits', db.INTEGER, nullable=False)
-    research_openings = db.Column('ResearchOpenings', db.INTEGER, nullable=False)
     is_visible = db.Column('IsVisible', db.BOOLEAN, nullable=False)
     is_deleted = db.Column('IsDeleted', db.BOOLEAN, nullable=False)
     created_on = db.Column('CreatedOn', db.DATETIME)
@@ -74,12 +73,14 @@ class ResearchSlot(db.Model):
     __tablename__ = 'ResearchSlot'
     research_slot_id = db.Column('ResearchSlotID', db.BIGINT, nullable=False, autoincrement=True, primary_key=True)
     research_id = db.Column('ResearchID', db.BIGINT, db.ForeignKey(Research.research_id), nullable=False)
+    research_slot_openings = db.Column('ResearchSlotOpenings', db.INTEGER, nullable=False)
     start_time = db.Column('StartTime', db.DATETIME, nullable=False)
     end_time = db.Column('EndTime', db.DATETIME, nullable=False)
     created_on = db.Column('CreatedOn', db.DATETIME)
 
-    def __init__(self, rid, start, end):
+    def __init__(self, rid, openings, start, end):
         self.research_id = rid
+        self.research_slot_openings = openings
         self.start_time = start
         self.end_time = end
 
@@ -352,4 +353,4 @@ def logout():
 
 if __name__ == '__main__':
     app.secret_key = os.urandom(32)
-    app.run(port=80)
+    app.run(port=80, host='0.0.0.0')
