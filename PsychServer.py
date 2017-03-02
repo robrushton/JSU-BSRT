@@ -55,18 +55,16 @@ class Research(db.Model):
     research_facilitator = db.Column('ResearchFacilitator', db.BIGINT, db.ForeignKey(Users.user_id), nullable=False)
     research_description = db.Column('ResearchDescription', db.VARCHAR, nullable=False)
     research_credits = db.Column('ResearchCredits', db.INTEGER, nullable=False)
-    is_visible = db.Column('IsVisible', db.BOOLEAN, nullable=False)
-    is_deleted = db.Column('IsDeleted', db.BOOLEAN, nullable=False)
+    is_visible = db.Column('IsVisible', db.BOOLEAN)
+    is_deleted = db.Column('IsDeleted', db.BOOLEAN)
     created_on = db.Column('CreatedOn', db.DATETIME)
 
-    def __init__(self, name, facilitator, description, credits, openings, visible, deleted):
+    def __init__(self, name, facilitator, description, research_credits, openings):
         self.research_name = name
         self.research_facilitator = facilitator
         self.research_description = description
-        self.research_credits = credits
+        self.research_credits = research_credits
         self.research_openings = openings
-        self.is_visible = visible
-        self.is_deleted = deleted
 
 
 class ResearchSlot(db.Model):
@@ -91,13 +89,12 @@ class StudentResearch(db.Model):
                                     primary_key=True)
     user_id = db.Column('UserID', db.BIGINT, db.ForeignKey(Users.user_id), nullable=False)
     research_slot_id = db.Column('ResearchSlotID', db.BIGINT, db.ForeignKey(ResearchSlot.research_id), nullable=False)
-    is_completed = db.Column('IsCompleted', db.BOOLEAN, nullable=False)
+    is_completed = db.Column('IsCompleted', db.BOOLEAN)
     created_on = db.Column('CreatedOn', db.DATETIME)
 
-    def __init__(self, uid, slot_id, completed):
+    def __init__(self, uid, slot_id):
         self.user_id = uid
         self.research_slot_id = slot_id
-        self.is_completed = completed
 
 
 # Login Handlers ---------------------------------------------------------------------
