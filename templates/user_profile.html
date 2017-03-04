@@ -16,7 +16,8 @@
                 <li></li>
             {% endfor %}
         {% endif %}
-        <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
+        <a href="{{ url_for('listings') }}">Listings</a><br>
+        <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
             {% for f in flashes %}
                 <li>{{ f }}</li>

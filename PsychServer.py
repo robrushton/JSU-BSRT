@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_login import login_required, LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, confirm_timed_token
+from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
+    confirm_timed_token
 from hashlib import sha256
 from DatabaseModels import Role, Users, Research, ResearchSlot, StudentResearch
 import Constants
@@ -63,7 +64,7 @@ def unauthorized_callback():
 # Page Routes/Logic ------------------------------------------------------------------
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def user_profile():
     flashes = []
@@ -86,6 +87,28 @@ def user_profile():
     if request.method == 'POST':
         return render_template('user_profile.html', flashes=flashes)
     return render_template('user_profile.html', flashes=flashes)
+
+
+@app.route('/listings', methods=['GET', 'POST'])
+@login_required
+def listings():
+    flashes = []
+    if request.method == 'GET':
+        counts = db.session.query(StudentResearch.research_slot_id, db.func.count(StudentResearch.student_research_id).label('Openings')) \
+            .group_by(StudentResearch.research_slot_id).subquery()
+        final_listings = db.session.query(Research.research_name, Research.research_description,
+                                             Research.research_credits, Users.user_email,
+                                             ResearchSlot.start_time, ResearchSlot.end_time,
+                                             ResearchSlot.research_slot_openings - counts.c.Openings) \
+            .filter(Research.research_facilitator == Users.user_id) \
+            .filter(Research.research_id == ResearchSlot.research_id) \
+            .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+            .all()
+        return render_template('listings.html', flashes=flashes, listings=final_listings)
+    if request.method == 'POST':
+        return render_template('listings.html', flashes=flashes)
+
+    return render_template('listings.html', flashes=flashes)
 
 
 @app.route('/login', methods=['GET', 'POST'])
