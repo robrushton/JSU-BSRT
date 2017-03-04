@@ -9,7 +9,8 @@
         {% for l in listings %}
             <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }}</li>
         {% endfor %}
-        <p class="message"><a href="{{ url_for('logout') }}">Logout</a></p><br>
+        <a href="{{ url_for('user_profile') }}">Profile</a><br>
+        <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
             {% for f in flashes %}
                 <li>{{ f }}</li>
