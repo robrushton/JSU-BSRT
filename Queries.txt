@@ -1,0 +1,24 @@
+//user profile page
+select temp.*, users.useremail from (
+select Research.researchname, Research.researchfacilitator, Research.researchdescription, Research.researchcredits, ResearchSlot.starttime, ResearchSlot.endtime, StudentResearch.iscompleted
+from users
+join studentresearch
+on users.UserID = studentresearch.UserID
+join researchslot
+on studentresearch.ResearchSlotID = researchslot.ResearchSlotID
+join research
+on researchslot.ResearchID = research.ResearchID
+where users.UserEmail = "USEREMAIL@HERE.COM") temp
+join users on temp.researchfacilitator = users.userid
+
+//listings page
+select r.ResearchName, r.ResearchDescription, r.ResearchCredits, u.UserEmail, rs.StartTime, rs.EndTime, rs.ResearchSlotOpenings - o.OccupiedSlots as AvailableSlots
+from research r
+join users u
+on r.ResearchFacilitator = u.UserID
+join researchslot rs
+on r.ResearchID = rs.ResearchID
+join (select sr.ResearchSlotID, count(StudentResearchID) as OccupiedSlots
+	  from studentresearch sr 
+      group by ResearchSlotID) o
+on rs.ResearchSlotID = o.ResearchSlotID
