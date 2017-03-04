@@ -74,6 +74,7 @@ def user_profile():
                                                 Research.research_description, Research.research_credits,
                                                 ResearchSlot.start_time, ResearchSlot.end_time,
                                                 StudentResearch.is_completed) \
+                .filter(Users.user_id == StudentResearch.user_id)\
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
