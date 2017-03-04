@@ -1,8 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_login import login_required, LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
-    confirm_timed_token
+from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, confirm_timed_token
 from hashlib import sha256
 from DatabaseModels import Role, Users, Research, ResearchSlot, StudentResearch
 import Constants
