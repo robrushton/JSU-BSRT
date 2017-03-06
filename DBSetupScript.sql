@@ -85,10 +85,10 @@ VALUES (1, 5, '2017-8-28 13:00:00', '2017-8-28 13:00:00'),
 (5, 5, '2017-12-28 10:00:00', '2017-12-28 12:00:00');
 
 INSERT INTO StudentResearch(UserID, ResearchSlotID, IsCompleted)
-VALUES (1, 1, FALSE),
+VALUES (1, 1, TRUE),
 (1, 3, FALSE),
-(2, 2, FALSE),
+(2, 2, TRUE),
 (2, 4, FALSE),
-(2, 7, FALSE),
-(3, 4, FALSE),
+(2, 7, TRUE),
+(3, 4, TRUE),
 (3, 1, FALSE);
