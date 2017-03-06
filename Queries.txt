@@ -22,3 +22,20 @@ join (select sr.ResearchSlotID, count(StudentResearchID) as OccupiedSlots
 	  from studentresearch sr 
       group by ResearchSlotID) o
 on rs.ResearchSlotID = o.ResearchSlotID
+
+//all students and completed credits
+select Users.UserEmail, sum(temp.CompletedCredits)
+from users
+join (select Users.UserID, Research.ResearchCredits as CompletedCredits
+	  from Users
+	  join StudentResearch
+	  on Users.UserID = StudentResearch.UserID
+	  join researchslot
+	  on studentresearch.ResearchSlotID = researchslot.ResearchSlotID
+	  join research
+	  on researchslot.ResearchID = research.ResearchID
+	  where StudentResearch.IsCompleted = TRUE
+	  group by studentresearch.StudentResearchID) temp
+on Users.UserID = temp.UserID
+where Users.UserRole = 1
+group by Users.UserID
