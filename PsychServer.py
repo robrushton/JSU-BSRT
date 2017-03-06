@@ -112,6 +112,33 @@ def listings():
     return render_template('listings.html', flashes=flashes)
 
 
+@app.route('/', methods=['GET', 'POST'])
+@login_required
+def all_students():
+    flashes = []
+    if request.method == 'GET':
+        if current_user.role == 'student':
+            return redirect(url_for('listings'))
+        else:
+            credits = db.session.query(Users.user_id, Research.research_credits)\
+                .filter(Users.user_id == StudentResearch.user_id)\
+                .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id)\
+                .filter(ResearchSlot.research_id == Research.research_id)\
+                .filter(StudentResearch.is_completed == True)\
+                .group_by(StudentResearch.student_research_id)\
+                .subquery()
+            students = db.session.query(Users.user_email, db.func.sum(credits.c.ResearchCredits))\
+                .filter(Users.user_id == credits.c.UserID)\
+                .filter(Users.user_role == 1)\
+                .group_by(Users.user_id)\
+                .all()
+            return render_template('all_students.html', listings=students, flashes=flashes)
+    if request.method == 'POST':
+        return render_template('all_students.html', flashes=flashes)
+
+    return render_template('all_students.html', flashes=flashes)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     flashes = []
