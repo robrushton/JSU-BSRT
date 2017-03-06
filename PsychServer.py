@@ -27,7 +27,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def user_loader(email):
-    if db.session.query(Users.user_email).filter_by(user_email=email).count() != 1:
+    if db.session.query(Users.user_email).filter(Users.user_email == email).count() != 1:
         return
 
     user = User()
@@ -43,7 +43,7 @@ def user_loader(email):
 @login_manager.request_loader
 def request_loader(req):
     email = req.form.get('email')
-    if db.session.query(Users.user_email).filter_by(user_email=email).count() != 1:
+    if db.session.query(Users.user_email).filter(Users.user_email == email).count() != 1:
         return
 
     user = User()
@@ -148,20 +148,20 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        salt = db.session.query(Users.user_salt).filter_by(user_email=email).scalar()
+        salt = db.session.query(Users.user_salt).filter(Users.user_email == email).scalar()
         if salt is None:
             flashes.append('Incorrect Login Information!')
             return render_template('login.html', flashes=flashes)
         current_password = sha256((password + salt).encode('utf-8')).hexdigest()
-        stored_password = db.session.query(Users.user_pw_hash).filter_by(user_email=email).scalar()
+        stored_password = db.session.query(Users.user_pw_hash).filter(Users.user_email == email).scalar()
         if stored_password is None:
             flashes.append('Incorrect Login Information!')
             return render_template('login.html', flashes=flashes)
         elif current_password == stored_password:
             user = User()
             user.id = email.lower()
-            user_lookup = db.session.query(Users.user_role).filter_by(user_email=email).first()
-            role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).scalar()
+            user_lookup = db.session.query(Users.user_role).filter(Users.user_email == email).scalar()
+            role_lookup = db.session.query(Role.role_name).filter(Role.role_id == user_lookup).scalar()
             user.role = role_lookup
             login_user(user)
             return redirect(url_for('user_profile'))
@@ -179,7 +179,7 @@ def confirm():
     if request.method == 'POST':
         email = request.form.get('email')
         if email.endswith('@stu.jsu.edu'):
-            if db.session.query(Users.user_email).filter_by(user_email=email).count() < 1:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
                 token = generate_confirmation_token(email, Constants.CONFIRM_SALT, app.secret_key)
                 from_address = Constants.DEFAULT_EMAIL
                 to_address = email
@@ -212,7 +212,7 @@ def signup(token):
         if not email:
             return redirect(url_for('confirm'))
         else:
-            if db.session.query(Users.user_email).filter_by(user_email=email).count() == 1:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
                 return redirect(url_for('login'))
             else:
                 return render_template('signup.html', reg_email=email)
@@ -221,7 +221,7 @@ def signup(token):
         if not email:
             return redirect(url_for('login'))
         else:
-            if db.session.query(Users.user_email).filter_by(user_email=email).count() == 1:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
                 return redirect(url_for('login'))
             else:
                 password = request.form.get('password')
@@ -256,7 +256,7 @@ def send_reset():
         return render_template('send_reset.html', flashes=flashes)
     if request.method == 'POST':
         email = request.form.get('email')
-        if db.session.query(Users.user_email).filter_by(user_email=email).count() == 1:
+        if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
             token = generate_timed_confirmation_token(email, app.secret_key)
             from_address = Constants.DEFAULT_EMAIL
             to_address = email
@@ -285,7 +285,7 @@ def reset_password(token):
         if not email:
             return redirect(url_for('send_reset'))
         else:
-            if db.session.query(Users.user_email).filter_by(user_email=email).count() < 1:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
                 return redirect(url_for('login'))
             else:
                 return render_template('reset_password.html', flashes=flashes)
@@ -294,7 +294,7 @@ def reset_password(token):
         if not email:
             return redirect(url_for('send_reset'))
         else:
-            if db.session.query(Users.user_email).filter_by(user_email=email).count() == 1:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
                 if password != confirm_password:
@@ -304,7 +304,7 @@ def reset_password(token):
                 else:
                     salt = sha256(email.encode('utf-8')).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
-                    db.session.query(Users.user_email).filter_by(user_email=email).update(
+                    db.session.query(Users.user_email).filter(Users.user_email == email).update(
                         {'user_pw_hash': password_hash})
                     db.session.commit()
                     return redirect(url_for('login'))
