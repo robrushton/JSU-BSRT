@@ -113,7 +113,7 @@ def listings():
     return render_template('listings.html', flashes=flashes)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/students', methods=['GET', 'POST'])
 @login_required
 def all_students():
     flashes = []
@@ -148,21 +148,21 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        salt = db.session.query(Users.user_salt).filter_by(user_email=email).first()
+        salt = db.session.query(Users.user_salt).filter_by(user_email=email).scalar()
         if salt is None:
             flashes.append('Incorrect Login Information!')
             return render_template('login.html', flashes=flashes)
-        current_password = sha256((password + salt[0]).encode('utf-8')).hexdigest()
-        stored_password = db.session.query(Users.user_pw_hash).filter_by(user_email=email).first()
+        current_password = sha256((password + salt).encode('utf-8')).hexdigest()
+        stored_password = db.session.query(Users.user_pw_hash).filter_by(user_email=email).scalar()
         if stored_password is None:
             flashes.append('Incorrect Login Information!')
             return render_template('login.html', flashes=flashes)
-        elif current_password == stored_password[0]:
+        elif current_password == stored_password:
             user = User()
             user.id = email.lower()
             user_lookup = db.session.query(Users.user_role).filter_by(user_email=email).first()
-            role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).first()
-            user.role = role_lookup[0]
+            role_lookup = db.session.query(Role.role_name).filter_by(role_id=user_lookup[0]).scalar()
+            user.role = role_lookup
             login_user(user)
             return redirect(url_for('user_profile'))
         else:
