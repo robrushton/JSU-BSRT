@@ -34,8 +34,8 @@ def user_loader(email):
     user.id = email
     role_lookup = db.session.query(Role.role_name) \
         .filter(Users.user_email == email) \
-        .filter(Role.role_id == Users.user_role).first()
-    user.role = role_lookup[0]
+        .filter(Role.role_id == Users.user_role).scalar()
+    user.role = role_lookup
 
     return user
 
@@ -50,8 +50,8 @@ def request_loader(req):
     user.id = email
     role_lookup = db.session.query(Role.role_name) \
         .filter(Users.user_email == email) \
-        .filter(Role.role_id == Users.user_role).first()
-    user.role = role_lookup[0]
+        .filter(Role.role_id == Users.user_role).scalar()
+    user.role = role_lookup
 
     return user
 
@@ -74,7 +74,7 @@ def user_profile():
                                                 Research.research_description, Research.research_credits,
                                                 ResearchSlot.start_time, ResearchSlot.end_time,
                                                 StudentResearch.is_completed) \
-                .filter(Users.user_id == StudentResearch.user_id)\
+                .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
@@ -95,12 +95,13 @@ def user_profile():
 def listings():
     flashes = []
     if request.method == 'GET':
-        counts = db.session.query(StudentResearch.research_slot_id, db.func.count(StudentResearch.student_research_id).label('Openings')) \
+        counts = db.session.query(StudentResearch.research_slot_id,
+                                  db.func.count(StudentResearch.student_research_id).label('Openings')) \
             .group_by(StudentResearch.research_slot_id).subquery()
         final_listings = db.session.query(Research.research_name, Research.research_description,
-                                             Research.research_credits, Users.user_email,
-                                             ResearchSlot.start_time, ResearchSlot.end_time,
-                                             ResearchSlot.research_slot_openings - counts.c.Openings) \
+                                          Research.research_credits, Users.user_email,
+                                          ResearchSlot.start_time, ResearchSlot.end_time,
+                                          ResearchSlot.research_slot_openings - counts.c.Openings) \
             .filter(Research.research_facilitator == Users.user_id) \
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
@@ -120,17 +121,17 @@ def all_students():
         if current_user.role == 'student':
             return redirect(url_for('listings'))
         else:
-            credits = db.session.query(Users.user_id, Research.research_credits)\
-                .filter(Users.user_id == StudentResearch.user_id)\
-                .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id)\
-                .filter(ResearchSlot.research_id == Research.research_id)\
-                .filter(StudentResearch.is_completed == True)\
-                .group_by(StudentResearch.student_research_id)\
+            student_credits = db.session.query(Users.user_id, Research.research_credits) \
+                .filter(Users.user_id == StudentResearch.user_id) \
+                .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
+                .filter(ResearchSlot.research_id == Research.research_id) \
+                .filter(StudentResearch.is_completed == True) \
+                .group_by(StudentResearch.student_research_id) \
                 .subquery()
-            students = db.session.query(Users.user_email, db.func.sum(credits.c.ResearchCredits))\
-                .filter(Users.user_id == credits.c.UserID)\
-                .filter(Users.user_role == 1)\
-                .group_by(Users.user_id)\
+            students = db.session.query(Users.user_email, db.func.sum(student_credits.c.ResearchCredits)) \
+                .filter(Users.user_id == student_credits.c.UserID) \
+                .filter(Users.user_role == 1) \
+                .group_by(Users.user_id) \
                 .all()
             return render_template('all_students.html', listings=students, flashes=flashes)
     if request.method == 'POST':
