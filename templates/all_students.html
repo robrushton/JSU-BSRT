@@ -10,6 +10,8 @@
             <h1>It seems you found a bug!</h1>
             <h2>Notify us what you did so we can fix it!</h2>
             <a href="{{ url_for('listings') }}">Listings</a><br>
+            <a href="{{ url_for('user_profile') }}">Profile</a><br>
+            <a href="{{ url_for('logout') }}">Logout</a><br>
         {% endif %}
         {% if current_user.role == 'professor' or current_user.role == 'admin' %}
             {% for l in listings %}
