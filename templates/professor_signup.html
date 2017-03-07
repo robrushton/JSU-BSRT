@@ -2,21 +2,18 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Sign Up</title>
+        <title>Professor Sign Up</title>
     </head>
     <body>
         <div class="login-page">
             <div class="banner">
                 <label class="banner-label">JSU Psychology Research</label>
             </div>
-            Student Registration for {{ reg_email }}
+            Professor Registration for {{ reg_email }}
             <div class="form">
                 <form class="confirm-form" method="post">
                     <input type="password" name="password" placeholder="Password"/><br>
                     <input type="password" name="confirm-password" placeholder="Confirm Password"/><br>
-                    <input type="radio" name="major-minor" value="major"/>Psychology Major<br>
-                    <input type="radio" name="major-minor" value="minor"/>Psychology Minor<br>
-                    <input type="radio" name="major-minor" value="other"/>Other Major<br>
                     <button type="submit" id="register-button">Register</button><br>
                 </form>
             </div>

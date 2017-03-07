@@ -63,6 +63,11 @@ def unauthorized_callback():
 
 # Page Routes/Logic ------------------------------------------------------------------
 
+@app.route('/')
+@login_required
+def index():
+    return redirect(url_for('user_profile'))
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -193,12 +198,12 @@ def confirm():
         email = request.form.get('email')
         if email.endswith('@stu.jsu.edu'):
             if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
-                token = generate_confirmation_token(email, Constants.CONFIRM_SALT, app.secret_key)
+                token = generate_confirmation_token(email, Constants.STUDENT_CONFIRM_SALT, app.secret_key)
                 from_address = Constants.DEFAULT_EMAIL
                 to_address = email
                 subject = 'JSU Psychology Research Account Setup'
                 body = 'Click the link below to setup your account:\n\n' \
-                       'http://{}/signup/{}' \
+                       'http://{}/signup/student/{}' \
                        '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.' \
                     .format(Constants.SERVER_IP, token)
                 email_text = 'From: {}\n' \
@@ -217,11 +222,45 @@ def confirm():
     return render_template('confirm.html', flashes=flashes)
 
 
-@app.route('/signup/<token>', methods=['GET', 'POST'])
+@app.route('/invite', methods=['GET', 'POST'])
+@login_required
+def invite_professor():
+    flashes = []
+    if request.method == 'GET':
+        return render_template('invite.html')
+    if request.method == 'POST':
+        if current_user.role == 'admin':
+            email = request.form.get('email')
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
+                token = generate_confirmation_token(email, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
+                from_address = Constants.DEFAULT_EMAIL
+                to_address = email
+                subject = 'JSU Psychology Research Account Setup'
+                body = 'You have been invited by a {} Admin.\n\n' \
+                       'Click the link below to setup your account:\n\n' \
+                       'http://{}/signup/professor/{}' \
+                       '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.' \
+                    .format(Constants.APP_NAME, Constants.SERVER_IP, token)
+                email_text = 'From: {}\n' \
+                             'To: {}\n' \
+                             'Subject: {}\n\n' \
+                             '{}'.format(from_address, to_address, subject, body)
+                send_email(from_address, to_address, email_text)
+                return redirect(url_for('user_profile'))
+            else:
+                flashes.append('That email is already being used.')
+                return render_template('invite.html', flashes=flashes)
+        else:
+            return redirect(url_for('user_profile'))
+
+    return render_template('invite.html', flashes=flashes)
+
+
+@app.route('/signup/student/<token>', methods=['GET', 'POST'])
 def signup(token):
     flashes = []
     if request.method == 'GET':
-        email = confirm_token(token, Constants.CONFIRM_SALT, app.secret_key)
+        email = confirm_token(token, Constants.STUDENT_CONFIRM_SALT, app.secret_key)
         if not email:
             return redirect(url_for('confirm'))
         else:
@@ -230,7 +269,7 @@ def signup(token):
             else:
                 return render_template('signup.html', reg_email=email)
     if request.method == 'POST':
-        email = confirm_token(token, Constants.CONFIRM_SALT, app.secret_key)
+        email = confirm_token(token, Constants.STUDENT_CONFIRM_SALT, app.secret_key)
         if not email:
             return redirect(url_for('login'))
         else:
@@ -259,7 +298,44 @@ def signup(token):
                     db.session.add(user)
                     db.session.commit()
                     return redirect(url_for('login'))
+
     return render_template('signup.html', flashes=flashes)
+
+
+@app.route('/signup/professor/<token>', methods=['GET', 'POST'])
+def professor_signup(token):
+    flashes = []
+    if request.method == 'GET':
+        email = confirm_token(token, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
+        if not email:
+            return redirect(url_for('login'))
+        else:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
+                return redirect(url_for('login'))
+            else:
+                return render_template('professor_signup.html', reg_email=email)
+    if request.method == 'POST':
+        email = confirm_token(token, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
+        if not email:
+            return redirect(url_for('login'))
+        else:
+            if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
+                return redirect(url_for('login'))
+            else:
+                password = request.form.get('password')
+                confirm_password = request.form.get('confirm-password')
+                if password != confirm_password:
+                    flashes.append('Your passwords did not match.')
+                if len(flashes) > 0:
+                    return render_template('professor_signup.html', flashes=flashes)
+                else:
+                    salt = sha256(email.encode('utf-8')).hexdigest()
+                    password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
+                    user = Users(email, password_hash, salt, 2, False, False)
+                    db.session.add(user)
+                    db.session.commit()
+                    return redirect(url_for('login'))
+    return render_template('professor_signup.html', flashes=flashes)
 
 
 @app.route('/reset/password', methods=['GET', 'POST'])

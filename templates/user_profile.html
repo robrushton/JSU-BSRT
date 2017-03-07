@@ -18,6 +18,13 @@
             {% endfor %}
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
+        {% if current_user.role == 'admin' %}
+            {% for l in listings %}
+                <li></li>
+            {% endfor %}
+            <a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
+            <a href="{{ url_for('all_students') }}">All Students</a><br>
+        {% endif %}
         <a href="{{ url_for('listings') }}">Listings</a><br>
         <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
