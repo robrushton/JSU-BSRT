@@ -6,6 +6,7 @@
     </head>
     <body>
         Logged in with {{ current_user.id }}<br>
+        You have completed {{ credits_completed }} credits.
         {% if current_user.role == 'student' %}
             {% for l in listings %}
                 <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }}</li>

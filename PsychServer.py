@@ -82,7 +82,20 @@ def user_profile():
             final_listings = db.session.query(Users.user_email, initial_listings) \
                 .join(initial_listings, Users.user_id == initial_listings.c.ResearchFacilitator) \
                 .all()
-            return render_template('user_profile.html', listings=final_listings, flashes=flashes)
+            student_credits = db.session.query(Users.user_id, Research.research_credits) \
+                .filter(Users.user_id == StudentResearch.user_id) \
+                .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
+                .filter(ResearchSlot.research_id == Research.research_id) \
+                .filter(StudentResearch.is_completed == True) \
+                .group_by(StudentResearch.student_research_id) \
+                .subquery()
+            credits_completed = db.session.query(db.func.sum(student_credits.c.ResearchCredits)) \
+                .filter(Users.user_id == student_credits.c.UserID) \
+                .filter(Users.user_role == 1) \
+                .filter(Users.user_email == current_user.id)\
+                .group_by(Users.user_id) \
+                .scalar()
+            return render_template('user_profile.html', credits_completed=credits_completed, listings=final_listings, flashes=flashes)
         elif current_user.role == 'professor':
             return render_template('user_profile.html', flashes=flashes)
     if request.method == 'POST':
