@@ -11,7 +11,7 @@
             <h2>Notify us what you did so we can fix it!</h2>
             <a href="{{ url_for('listings') }}">Listings</a><br>
         {% endif %}
-        {% if current_user.role == 'professor' %}
+        {% if current_user.role == 'professor' or current_user.role == 'admin' %}
             {% for l in listings %}
                 <li>{{ l[0] }} {{ l[1] }}</li>
             {% endfor %}
