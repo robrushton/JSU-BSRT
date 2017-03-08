@@ -33,11 +33,9 @@ def confirm_timed_token(token, secret_key):
 
 
 def send_email(from_address, to_address, email_text):
-    username = Constants.EMAIL_USERNAME
-    password = Constants.EMAIL_PASSWORD
     server = SMTP('smtp.gmail.com')
     server.ehlo()
     server.starttls()
-    server.login(username, password)
+    server.login(Constants.EMAIL_USERNAME, Constants.EMAIL_PASSWORD)
     server.sendmail(from_address, to_address, email_text)
     server.quit()
