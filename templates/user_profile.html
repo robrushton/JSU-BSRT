@@ -14,13 +14,16 @@
         {% endif %}
         {% if current_user.role == 'professor' %}
             {% for l in listings %}
-                <li></li>
+                <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }}</li>
             {% endfor %}
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
         {% if current_user.role == 'admin' %}
             {% for l in listings %}
-                <li></li>
+                <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }}</li>
+            {% endfor %}<br><br>
+            {% for ol in other_listings %}
+                <li>{{ ol[0] }} {{ ol[1] }} {{ ol[2] }} {{ ol[3] }} {{ ol[4] }} {{ ol[5] }}</li>
             {% endfor %}
             <a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
             <a href="{{ url_for('all_students') }}">All Students</a><br>

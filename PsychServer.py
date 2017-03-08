@@ -102,9 +102,41 @@ def user_profile():
                 .scalar()
             return render_template('user_profile.html', credits_completed=credits_completed, listings=final_listings, flashes=flashes)
         elif current_user.role == 'professor':
-            return render_template('user_profile.html', flashes=flashes)
+            counts = db.session.query(StudentResearch.research_slot_id,
+                                      db.func.count(StudentResearch.student_research_id).label('Openings')) \
+                .group_by(StudentResearch.research_slot_id).subquery()
+            final_listings = db.session.query(Research.research_name, Research.research_description,
+                                              Research.research_credits, ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              ResearchSlot.start_time, ResearchSlot.end_time)\
+                .filter(Research.research_facilitator == Users.user_id) \
+                .filter(Research.research_id == ResearchSlot.research_id) \
+                .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+                .filter(Users.user_email == current_user.id) \
+                .all()
+            return render_template('user_profile.html', listings=final_listings, flashes=flashes)
         elif current_user.role == 'admin':
-            return render_template('user_profile.html', flashes=flashes)
+            counts = db.session.query(StudentResearch.research_slot_id,
+                                      db.func.count(StudentResearch.student_research_id).label('Openings')) \
+                .group_by(StudentResearch.research_slot_id).subquery()
+            final_listings = db.session.query(Research.research_name, Research.research_description,
+                                              Research.research_credits,
+                                              ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              ResearchSlot.start_time, ResearchSlot.end_time) \
+                .filter(Research.research_facilitator == Users.user_id) \
+                .filter(Research.research_id == ResearchSlot.research_id) \
+                .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+                .filter(Users.user_email == current_user.id) \
+                .all()
+            other_listings = db.session.query(Research.research_name, Research.research_description,
+                                              Research.research_credits,
+                                              ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              ResearchSlot.start_time, ResearchSlot.end_time) \
+                .filter(Research.research_facilitator == Users.user_id) \
+                .filter(Research.research_id == ResearchSlot.research_id) \
+                .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+                .filter(Users.user_email != current_user.id) \
+                .all()
+            return render_template('user_profile.html', listings=final_listings, other_listings=other_listings, flashes=flashes)
     if request.method == 'POST':
         return render_template('user_profile.html', flashes=flashes)
     return render_template('user_profile.html', flashes=flashes)
