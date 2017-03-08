@@ -91,7 +91,7 @@ def user_profile():
                 .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
-                .filter(StudentResearch.is_completed == True) \
+                .filter(StudentResearch.is_completed) \
                 .group_by(StudentResearch.student_research_id) \
                 .subquery()
             credits_completed = db.session.query(db.func.sum(student_credits.c.ResearchCredits)) \
@@ -102,6 +102,8 @@ def user_profile():
                 .scalar()
             return render_template('user_profile.html', credits_completed=credits_completed, listings=final_listings, flashes=flashes)
         elif current_user.role == 'professor':
+            return render_template('user_profile.html', flashes=flashes)
+        elif current_user.role == 'admin':
             return render_template('user_profile.html', flashes=flashes)
     if request.method == 'POST':
         return render_template('user_profile.html', flashes=flashes)
