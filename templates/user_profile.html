@@ -10,7 +10,7 @@
             You have completed {{ credits_completed }} credits.
             {% for l in listings %}
                 <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }}</li>
-            {% endfor %}<br><br>
+            {% endfor %}<br>
             {% for cl in completed_listings %}
                 <li>{{ cl[0] }} {{ cl[1] }} {{ cl[3] }} {{ cl[4] }} {{ cl[5] }} {{ cl[6] }} {{ cl[7] }}</li>
             {% endfor %}
@@ -24,7 +24,7 @@
         {% if current_user.role == 'admin' %}
             {% for l in listings %}
                 <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }}</li>
-            {% endfor %}<br><br>
+            {% endfor %}<br>
             {% for ol in other_listings %}
                 <li>{{ ol[0] }} {{ ol[1] }} {{ ol[2] }} {{ ol[3] }} {{ ol[4] }} {{ ol[5] }}</li>
             {% endfor %}

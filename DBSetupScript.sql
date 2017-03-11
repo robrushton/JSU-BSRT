@@ -69,11 +69,7 @@ VALUES ('Research One', 4, 'This is example project number 1', 2, TRUE, FALSE),
 ('Research Three', 4, 'This is example project number 3', 1, TRUE, FALSE),
 ('Research Four', 5, 'This is example project number 4', 2, TRUE, FALSE),
 ('Research Five', 4, 'This is example project number 5', 3, TRUE, FALSE),
-('Research Six', 5, 'This is example project number 6', 1, TRUE, FALSE),
-('Research Seven', 4, 'This is example project number 7', 2, TRUE, FALSE),
-('Research Eight', 5, 'This is example project number 8', 3, TRUE, FALSE),
-('Research Nine', 4, 'This is example project number 9', 1, FALSE, FALSE),
-('Research Ten', 5, 'This is example project number 10', 2, FALSE, TRUE);
+('Research Six', 6, 'This is example project number 6', 1, TRUE, FALSE);
 
 INSERT INTO ResearchSlot(ResearchID, ResearchSlotOpenings, StartTime, EndTime)
 VALUES (1, 5, '2017-8-28 13:00:00', '2017-8-28 13:00:00'),
@@ -82,7 +78,9 @@ VALUES (1, 5, '2017-8-28 13:00:00', '2017-8-28 13:00:00'),
 (3, 10, '2017-10-28 15:30:00', '2017-10-28 16:30:00'),
 (3, 5, '2017-10-29 15:30:00', '2017-10-29 15:30:00'),
 (4, 10, '2017-11-28 08:00:00', '2017-11-28 10:00:00'),
-(5, 5, '2017-12-28 10:00:00', '2017-12-28 12:00:00');
+(5, 5, '2017-12-28 10:00:00', '2017-12-28 12:00:00'),
+(6, 10, '2017-12-31 11:00:00', '2017-12-31 12:00:00')
+(6, 5, '2017-12-31 11:00:00', '2017-12-31 12:00:00');
 
 INSERT INTO StudentResearch(UserID, ResearchSlotID, IsCompleted)
 VALUES (1, 1, TRUE),

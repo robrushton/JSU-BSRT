@@ -83,7 +83,7 @@ def user_profile():
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
-                .filter(not StudentResearch.is_completed) \
+                .filter(StudentResearch.is_completed == False) \
                 .subquery()
             enrolled_listings = db.session.query(Users.user_email, initial_enrolled_listings) \
                 .join(initial_enrolled_listings, Users.user_id == initial_enrolled_listings.c.ResearchFacilitator) \
@@ -96,7 +96,7 @@ def user_profile():
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
-                .filter(StudentResearch.is_completed) \
+                .filter(StudentResearch.is_completed == True) \
                 .subquery()
             completed_listings = db.session.query(Users.user_email, initial_completed_listings) \
                 .join(initial_completed_listings, Users.user_id == initial_completed_listings.c.ResearchFacilitator) \
