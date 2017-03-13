@@ -6,6 +6,7 @@ from Utilities import generate_confirmation_token, confirm_token, send_email, ge
 from hashlib import sha256
 from DatabaseModels import Role, Users, Research, ResearchSlot, StudentResearch
 import Constants
+import pymysql
 import os
 
 app = Flask(__name__)
@@ -329,7 +330,9 @@ def signup(token):
                 confirm_password = request.form.get('confirm-password')
                 major_minor = request.form.get('major-minor')
                 if len(password) < 8:
-                    flashes.append('Your password must be at least 8 characters long.')
+                    flashes.append('Your password must be at least 8 characters.')
+                if len(password) > 512:
+                    flashes.append('You password must be shorter than 512 characters.')
                 if password != confirm_password:
                     flashes.append('Your passwords did not match.')
                 if major_minor is None:
@@ -377,6 +380,8 @@ def professor_signup(token):
                 confirm_password = request.form.get('confirm-password')
                 if len(password) < 8:
                     flashes.append('Your password must be at least 8 characters long.')
+                if len(password) > 512:
+                    flashes.append('You password must be shorter than 512 characters.')
                 if password != confirm_password:
                     flashes.append('Your passwords did not match.')
                 if len(flashes) > 0:
