@@ -343,7 +343,7 @@ def signup(token):
                         psych_major = True
                     elif major_minor == 'minor':
                         psych_minor = True
-                    salt = sha256(email.encode('utf-8')).hexdigest()
+                    salt = sha256(os.urandom(32)).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
                     user = Users(email, password_hash, salt, 1, psych_major, psych_minor)
                     db.session.add(user)
@@ -382,7 +382,7 @@ def professor_signup(token):
                 if len(flashes) > 0:
                     return render_template('professor_signup.html', flashes=flashes)
                 else:
-                    salt = sha256(email.encode('utf-8')).hexdigest()
+                    salt = sha256(os.urandom(32)).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
                     user = Users(email, password_hash, salt, 2, False, False)
                     db.session.add(user)
