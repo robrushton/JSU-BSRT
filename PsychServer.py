@@ -328,6 +328,8 @@ def signup(token):
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
                 major_minor = request.form.get('major-minor')
+                if len(password) < 8:
+                    flashes.append('Your password must be at least 8 characters long.')
                 if password != confirm_password:
                     flashes.append('Your passwords did not match.')
                 if major_minor is None:
@@ -373,6 +375,8 @@ def professor_signup(token):
             else:
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
+                if len(password) < 8:
+                    flashes.append('Your password must be at least 8 characters long.')
                 if password != confirm_password:
                     flashes.append('Your passwords did not match.')
                 if len(flashes) > 0:
