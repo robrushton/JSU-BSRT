@@ -449,7 +449,7 @@ def reset_password(token):
                 if len(flashes) > 0:
                     return render_template('signup.html', flashes=flashes)
                 else:
-                    salt = sha256(email.encode('utf-8')).hexdigest()
+                    salt = sha256(os.urandom(32)).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
                     db.session.query(Users.user_email).filter(Users.user_email == email).update(
                         {'user_pw_hash': password_hash})
