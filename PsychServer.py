@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import login_required, LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
@@ -73,7 +73,6 @@ def index():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def user_profile():
-    flashes = []
     if request.method == 'GET':
         if current_user.role == 'student':
             initial_enrolled_listings = db.session.query(Research.research_name, Research.research_facilitator,
@@ -116,11 +115,12 @@ def user_profile():
                 .group_by(Users.user_id) \
                 .scalar()
             return render_template('user_profile.html', credits_completed=credits_completed, listings=enrolled_listings,
-                                   completed_listings=completed_listings, flashes=flashes)
+                                   completed_listings=completed_listings)
         elif current_user.role == 'professor':
-            counts = db.session.query(StudentResearch.research_slot_id,
+            counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Openings')) \
-                .group_by(StudentResearch.research_slot_id).subquery()
+                .outerjoin(StudentResearch) \
+                .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits, ResearchSlot.research_slot_openings - counts.c.Openings,
                                               ResearchSlot.start_time, ResearchSlot.end_time)\
@@ -129,11 +129,12 @@ def user_profile():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(Users.user_email == current_user.id) \
                 .all()
-            return render_template('user_profile.html', listings=final_listings, flashes=flashes)
+            return render_template('user_profile.html', listings=final_listings)
         elif current_user.role == 'admin':
-            counts = db.session.query(StudentResearch.research_slot_id,
+            counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Openings')) \
-                .group_by(StudentResearch.research_slot_id).subquery()
+                .outerjoin(StudentResearch) \
+                .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
                                               ResearchSlot.research_slot_openings - counts.c.Openings,
@@ -152,20 +153,20 @@ def user_profile():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(Users.user_email != current_user.id) \
                 .all()
-            return render_template('user_profile.html', listings=final_listings, other_listings=other_listings, flashes=flashes)
+            return render_template('user_profile.html', listings=final_listings, other_listings=other_listings)
     if request.method == 'POST':
-        return render_template('user_profile.html', flashes=flashes)
-    return render_template('user_profile.html', flashes=flashes)
+        return render_template('user_profile.html')
+    return render_template('user_profile.html')
 
 
 @app.route('/listings', methods=['GET', 'POST'])
 @login_required
 def listings():
-    flashes = []
     if request.method == 'GET':
-        counts = db.session.query(StudentResearch.research_slot_id,
+        counts = db.session.query(ResearchSlot.research_slot_id,
                                   db.func.count(StudentResearch.student_research_id).label('Openings')) \
-            .group_by(StudentResearch.research_slot_id).subquery()
+            .outerjoin(StudentResearch) \
+            .group_by(ResearchSlot.research_slot_id).subquery()
         final_listings = db.session.query(Research.research_name, Research.research_description,
                                           Research.research_credits, Users.user_email,
                                           ResearchSlot.start_time, ResearchSlot.end_time,
@@ -174,17 +175,16 @@ def listings():
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
             .all()
-        return render_template('listings.html', flashes=flashes, listings=final_listings)
+        return render_template('listings.html', listings=final_listings)
     if request.method == 'POST':
-        return render_template('listings.html', flashes=flashes)
+        return render_template('listings.html')
 
-    return render_template('listings.html', flashes=flashes)
+    return render_template('listings.html')
 
 
 @app.route('/students', methods=['GET', 'POST'])
 @login_required
 def all_students():
-    flashes = []
     if request.method == 'GET':
         if current_user.role == 'student':
             return redirect(url_for('listings'))
@@ -201,30 +201,29 @@ def all_students():
                 .filter(Users.user_role == 1) \
                 .group_by(Users.user_id) \
                 .all()
-            return render_template('all_students.html', listings=students, flashes=flashes)
+            return render_template('all_students.html', listings=students)
     if request.method == 'POST':
-        return render_template('all_students.html', flashes=flashes)
+        return render_template('all_students.html')
 
-    return render_template('all_students.html', flashes=flashes)
+    return render_template('all_students.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    flashes = []
     if request.method == 'GET':
-        return render_template('login.html', flashes=flashes)
+        return render_template('login.html')
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         salt = db.session.query(Users.user_salt).filter(Users.user_email == email).scalar()
         if salt is None:
-            flashes.append('Incorrect Login Information!')
-            return render_template('login.html', flashes=flashes)
+            flash('Incorrect Login Information!')
+            return render_template('login.html')
         current_password = sha256((password + salt).encode('utf-8')).hexdigest()
         stored_password = db.session.query(Users.user_pw_hash).filter(Users.user_email == email).scalar()
         if stored_password is None:
-            flashes.append('Incorrect Login Information!')
-            return render_template('login.html', flashes=flashes)
+            flash('Incorrect Login Information!')
+            return render_template('login.html')
         elif current_password == stored_password:
             user = User()
             user.id = email.lower()
@@ -234,14 +233,13 @@ def login():
             login_user(user)
             return redirect(url_for('user_profile'))
         else:
-            flashes.append('Incorrect Login Information!')
-            return render_template('login.html', flashes=flashes)
-    return render_template('login.html', flashes=flashes)
+            flash('Incorrect Login Information!')
+            return render_template('login.html')
+    return render_template('login.html')
 
 
 @app.route('/confirm', methods=['GET', 'POST'])
 def confirm():
-    flashes = []
     if request.method == 'GET':
         return render_template('confirm.html')
     if request.method == 'POST':
@@ -263,19 +261,18 @@ def confirm():
                 send_email(from_address, to_address, email_text)
                 return redirect(url_for('login'))
             else:
-                flashes.append('That email is already being used.')
-                return render_template('confirm.html', flashes=flashes)
+                flash('That email is already being used.')
+                return render_template('confirm.html')
         else:
-            flashes.append('You must use a JSU student email.')
-            return render_template('confirm.html', flashes=flashes)
+            flash('You must use a JSU student email.')
+            return render_template('confirm.html')
 
-    return render_template('confirm.html', flashes=flashes)
+    return render_template('confirm.html')
 
 
 @app.route('/invite', methods=['GET', 'POST'])
 @login_required
 def invite_professor():
-    flashes = []
     if request.method == 'GET':
         return render_template('invite.html')
     if request.method == 'POST':
@@ -298,17 +295,16 @@ def invite_professor():
                 send_email(from_address, to_address, email_text)
                 return redirect(url_for('user_profile'))
             else:
-                flashes.append('That email is already being used.')
-                return render_template('invite.html', flashes=flashes)
+                flash('That email is already being used.')
+                return render_template('invite.html')
         else:
             return redirect(url_for('user_profile'))
 
-    return render_template('invite.html', flashes=flashes)
+    return render_template('invite.html')
 
 
 @app.route('/signup/student/<token>', methods=['GET', 'POST'])
 def signup(token):
-    flashes = []
     if request.method == 'GET':
         email = confirm_token(token, Constants.STUDENT_CONFIRM_SALT, app.secret_key)
         if not email:
@@ -330,15 +326,13 @@ def signup(token):
                 confirm_password = request.form.get('confirm-password')
                 major_minor = request.form.get('major-minor')
                 if len(password) < 8:
-                    flashes.append('Your password must be at least 8 characters.')
+                    flash('Your password must be at least 8 characters.')
                 if len(password) > 512:
-                    flashes.append('You password must be shorter than 512 characters.')
+                    flash('You password must be shorter than 512 characters.')
                 if password != confirm_password:
-                    flashes.append('Your passwords did not match.')
+                    flash('Your passwords did not match.')
                 if major_minor is None:
-                    flashes.append('You must pick Psychology Major, Psychology Minor, or Other Major.')
-                if len(flashes) > 0:
-                    return render_template('signup.html', flashes=flashes)
+                    flash('You must pick Psychology Major, Psychology Minor, or Other Major.')
                 else:
                     psych_major = False
                     psych_minor = False
@@ -353,12 +347,11 @@ def signup(token):
                     db.session.commit()
                     return redirect(url_for('login'))
 
-    return render_template('signup.html', flashes=flashes)
+    return render_template('signup.html')
 
 
 @app.route('/signup/professor/<token>', methods=['GET', 'POST'])
 def professor_signup(token):
-    flashes = []
     if request.method == 'GET':
         email = confirm_token(token, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
         if not email:
@@ -379,13 +372,11 @@ def professor_signup(token):
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
                 if len(password) < 8:
-                    flashes.append('Your password must be at least 8 characters long.')
+                    flash('Your password must be at least 8 characters long.')
                 if len(password) > 512:
-                    flashes.append('You password must be shorter than 512 characters.')
+                    flash('You password must be shorter than 512 characters.')
                 if password != confirm_password:
-                    flashes.append('Your passwords did not match.')
-                if len(flashes) > 0:
-                    return render_template('professor_signup.html', flashes=flashes)
+                    flash('Your passwords did not match.')
                 else:
                     salt = sha256(os.urandom(32)).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
@@ -393,14 +384,13 @@ def professor_signup(token):
                     db.session.add(user)
                     db.session.commit()
                     return redirect(url_for('login'))
-    return render_template('professor_signup.html', flashes=flashes)
+    return render_template('professor_signup.html')
 
 
 @app.route('/reset/password', methods=['GET', 'POST'])
 def send_reset():
-    flashes = []
     if request.method == 'GET':
-        return render_template('send_reset.html', flashes=flashes)
+        return render_template('send_reset.html')
     if request.method == 'POST':
         email = request.form.get('email')
         if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
@@ -419,14 +409,13 @@ def send_reset():
             send_email(from_address, to_address, email_text)
             return redirect(url_for('login'))
         else:
-            flashes.append('That email is not registered.')
-            return render_template('send_reset.html', flashes=flashes)
-    return render_template('send_reset.html', flashes=flashes)
+            flash('That email is not registered.')
+            return render_template('send_reset.html')
+    return render_template('send_reset.html')
 
 
 @app.route('/reset/password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    flashes = []
     if request.method == 'GET':
         email = confirm_timed_token(token, app.secret_key)
         if not email:
@@ -435,7 +424,7 @@ def reset_password(token):
             if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
                 return redirect(url_for('login'))
             else:
-                return render_template('reset_password.html', flashes=flashes)
+                return render_template('reset_password.html')
     if request.method == 'POST':
         email = confirm_timed_token(token, app.secret_key)
         if not email:
@@ -445,9 +434,7 @@ def reset_password(token):
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
                 if password != confirm_password:
-                    flashes.append('Your passwords did not match.')
-                if len(flashes) > 0:
-                    return render_template('signup.html', flashes=flashes)
+                    flash('Your passwords did not match.')
                 else:
                     salt = sha256(os.urandom(32)).hexdigest()
                     password_hash = sha256((confirm_password + salt).encode('utf-8')).hexdigest()
@@ -455,7 +442,7 @@ def reset_password(token):
                         {'user_pw_hash': password_hash})
                     db.session.commit()
                     return redirect(url_for('login'))
-    return render_template('reset_password.html', flashes=flashes)
+    return render_template('reset_password.html')
 
 
 @app.route('/logout')

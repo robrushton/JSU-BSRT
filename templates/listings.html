@@ -12,9 +12,13 @@
         <a href="{{ url_for('user_profile') }}">Profile</a><br>
         <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
-            {% for f in flashes %}
-                <li>{{ f }}</li>
-            {% endfor %}
+            {% with flashes = get_flashed_messages() %}
+                    {% if flashes %}
+                        {% for f in flashes %}
+                            <li>{{ f }}</li>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
         </div>
     </body>
 </html>

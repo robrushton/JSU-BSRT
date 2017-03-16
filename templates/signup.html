@@ -21,9 +21,13 @@
                 </form>
             </div>
             <div class="flash-messages">
-                {% for f in flashes %}
-                    <li>{{ f }}</li>
-                {% endfor %}
+                {% with flashes = get_flashed_messages() %}
+                    {% if flashes %}
+                        {% for f in flashes %}
+                            <li>{{ f }}</li>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
             </div>
         </div>
     </body>
