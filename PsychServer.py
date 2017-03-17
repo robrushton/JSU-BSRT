@@ -223,11 +223,23 @@ def join_study():
     if request.method == 'GET':
         return redirect(url_for('listings'))
     if request.method == 'POST':
-        slot_id = request.form.get('id')
-        user = request.form.get('user')
+        slot_id = int(request.form.get('id'))
+        user_email = request.form.get('user')
         token = request.form.get('token')
         token_tuple = confirm_token(token, Constants.LISTING_SALT, app.secret_key)
-        if token_tuple[0] == user and token_tuple[1] == slot_id:
+        if token_tuple[0] == user_email and token_tuple[1] == slot_id:
+            already_enrolled = db.session.query(db.func.count(StudentResearch.student_research_id))\
+                .filter(StudentResearch.research_slot_id == slot_id) \
+                .filter(StudentResearch.user_id == Users.user_id) \
+                .filter(Users.user_email == user_email) \
+                .scalar()
+            same_study = db.session.query(db.func.count(Research.research_id)) \
+                .filter(Research.research_id == ResearchSlot.research_id) \
+                .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
+                .filter(StudentResearch.user_id == Users.user_id) \
+                .filter(ResearchSlot.research_slot_id == slot_id) \
+                .filter(Users.user_email == user_email) \
+                .scalar()
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
                 .outerjoin(StudentResearch) \
@@ -238,10 +250,22 @@ def join_study():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(ResearchSlot.research_slot_id == slot_id) \
                 .scalar()
-            if openings == 0:
+            if already_enrolled > 0:
+                flash('You are already enrolled in this time slot.')
+            elif same_study > 0:
+                flash('You have already enrolled in a different time slot for this research study.')
+            elif openings == 0:
                 flash('That listing is already full. Refresh the page to see current listings.')
+            else:
+                user_id = db.session.query(Users.user_id)\
+                    .filter(Users.user_email == user_email)\
+                    .scalar()
+                student_research = StudentResearch(user_id, slot_id)
+                db.session.add(student_research)
+                db.session.commit()
+                flash('You have successfully joined.')
         else:
-            flash('error')
+            flash('An error occurred. Refresh the page and try again.')
         return redirect(url_for('listings'))
 
     return redirect(url_for('listings'))
