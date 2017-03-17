@@ -224,7 +224,7 @@ def join_study():
         return redirect(url_for('listings'))
     if request.method == 'POST':
         slot_id = int(request.form.get('id'))
-        user_email = request.form.get('user')
+        user_email = current_user.id
         token = request.form.get('token')
         token_tuple = confirm_token(token, Constants.LISTING_SALT, app.secret_key)
         if token_tuple[0] == user_email and token_tuple[1] == slot_id:

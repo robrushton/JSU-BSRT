@@ -10,7 +10,6 @@
             {% for li in listings %}
                 <form method="post" action="{{ url_for('join_study') }}"><br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
                     <input type="hidden" name="id" value="{{ li[7] }}" />
-                    <input type="hidden" name="user" value="{{ current_user.id }}" />
                     <input type="hidden" name="token" value="{{ li[8] }}" />
                     <button type="submit">Join</button>
                 </form>
@@ -20,6 +19,7 @@
                 <br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
             {% endfor %}
         {% endif %}
+        <br>
         <a href="{{ url_for('user_profile') }}">Profile</a><br>
         <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
