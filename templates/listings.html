@@ -6,9 +6,20 @@
     </head>
     <body>
         Logged in with {{ current_user.id }}<br>
-        {% for l in listings %}
-            <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }}</li>
-        {% endfor %}
+        {% if current_user.role == 'student' %}
+            {% for li in listings %}
+                <form method="post" action="{{ url_for('join_study') }}"><br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
+                    <input type="hidden" name="id" value="{{ li[7] }}" />
+                    <input type="hidden" name="user" value="{{ current_user.id }}" />
+                    <input type="hidden" name="token" value="{{ li[8] }}" />
+                    <button type="submit">Join</button>
+                </form>
+            {% endfor %}
+        {% else %}
+            {% for li in listings %}
+                <br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
+            {% endfor %}
+        {% endif %}
         <a href="{{ url_for('user_profile') }}">Profile</a><br>
         <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">

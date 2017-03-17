@@ -118,11 +118,11 @@ def user_profile():
                                    completed_listings=completed_listings)
         elif current_user.role == 'professor':
             counts = db.session.query(ResearchSlot.research_slot_id,
-                                      db.func.count(StudentResearch.student_research_id).label('Openings')) \
+                                      db.func.count(StudentResearch.student_research_id).label('Occupied')) \
                 .outerjoin(StudentResearch) \
                 .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
-                                              Research.research_credits, ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              Research.research_credits, ResearchSlot.research_slot_openings - counts.c.Occupied,
                                               ResearchSlot.start_time, ResearchSlot.end_time)\
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
@@ -132,12 +132,12 @@ def user_profile():
             return render_template('user_profile.html', listings=final_listings)
         elif current_user.role == 'admin':
             counts = db.session.query(ResearchSlot.research_slot_id,
-                                      db.func.count(StudentResearch.student_research_id).label('Openings')) \
+                                      db.func.count(StudentResearch.student_research_id).label('Occupied')) \
                 .outerjoin(StudentResearch) \
                 .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
-                                              ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              ResearchSlot.research_slot_openings - counts.c.Occupied,
                                               ResearchSlot.start_time, ResearchSlot.end_time) \
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
@@ -146,7 +146,7 @@ def user_profile():
                 .all()
             other_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
-                                              ResearchSlot.research_slot_openings - counts.c.Openings,
+                                              ResearchSlot.research_slot_openings - counts.c.Occupied,
                                               ResearchSlot.start_time, ResearchSlot.end_time) \
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
@@ -164,18 +164,27 @@ def user_profile():
 def listings():
     if request.method == 'GET':
         counts = db.session.query(ResearchSlot.research_slot_id,
-                                  db.func.count(StudentResearch.student_research_id).label('Openings')) \
+                                  db.func.count(StudentResearch.student_research_id).label('Occupied')) \
             .outerjoin(StudentResearch) \
             .group_by(ResearchSlot.research_slot_id).subquery()
         final_listings = db.session.query(Research.research_name, Research.research_description,
                                           Research.research_credits, Users.user_email,
                                           ResearchSlot.start_time, ResearchSlot.end_time,
-                                          ResearchSlot.research_slot_openings - counts.c.Openings) \
+                                          ResearchSlot.research_slot_openings - counts.c.Occupied,
+                                          ResearchSlot.research_slot_id) \
             .filter(Research.research_facilitator == Users.user_id) \
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+            .filter((ResearchSlot.research_slot_openings - counts.c.Occupied) > 0) \
             .all()
-        return render_template('listings.html', listings=final_listings)
+        token_listings = []
+        for fl in final_listings:
+            temp = []
+            for x in fl:
+                temp.append(x)
+            temp.append(generate_confirmation_token((current_user.id, temp[7]), Constants.LISTING_SALT, app.secret_key))
+            token_listings.append(temp)
+        return render_template('listings.html', listings=token_listings)
     if request.method == 'POST':
         return render_template('listings.html')
 
@@ -206,6 +215,36 @@ def all_students():
         return render_template('all_students.html')
 
     return render_template('all_students.html')
+
+
+@app.route('/join', methods=['GET', 'POST'])
+@login_required
+def join_study():
+    if request.method == 'GET':
+        return redirect(url_for('listings'))
+    if request.method == 'POST':
+        slot_id = request.form.get('id')
+        user = request.form.get('user')
+        token = request.form.get('token')
+        token_tuple = confirm_token(token, Constants.LISTING_SALT, app.secret_key)
+        if token_tuple[0] == user and token_tuple[1] == slot_id:
+            counts = db.session.query(ResearchSlot.research_slot_id,
+                                      db.func.count(StudentResearch.student_research_id).label('Occupied')) \
+                .outerjoin(StudentResearch) \
+                .group_by(ResearchSlot.research_slot_id).subquery()
+            openings = db.session.query(ResearchSlot.research_slot_openings - counts.c.Occupied) \
+                .filter(Research.research_facilitator == Users.user_id) \
+                .filter(Research.research_id == ResearchSlot.research_id) \
+                .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
+                .filter(ResearchSlot.research_slot_id == slot_id) \
+                .scalar()
+            if openings == 0:
+                flash('That listing is already full. Refresh the page to see current listings.')
+        else:
+            flash('error')
+        return redirect(url_for('listings'))
+
+    return redirect(url_for('listings'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
