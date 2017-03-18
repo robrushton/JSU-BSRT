@@ -233,11 +233,11 @@ def join_study():
                 .filter(StudentResearch.user_id == Users.user_id) \
                 .filter(Users.user_email == user_email) \
                 .scalar()
-            same_study = db.session.query(db.func.count(Research.research_id)) \
+            same_study = db.session.query(db.func.count(['*'])) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
                 .filter(StudentResearch.user_id == Users.user_id) \
-                .filter(ResearchSlot.research_slot_id == slot_id) \
+                .filter(StudentResearch.student_research_id == slot_id) \
                 .filter(Users.user_email == user_email) \
                 .scalar()
             counts = db.session.query(ResearchSlot.research_slot_id,
