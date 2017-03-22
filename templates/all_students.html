@@ -14,8 +14,8 @@
             <a href="{{ url_for('logout') }}">Logout</a><br>
         {% endif %}
         {% if current_user.role == 'professor' or current_user.role == 'admin' %}
-            {% for l in listings %}
-                <li>{{ l[0] }} {{ l[1] }}</li>
+            {% for li in listings %}
+                <li>{{ li['user_email'] }} {{ li['credits_earned'] }}</li>
             {% endfor %}
         {% endif %}
         <a href="{{ url_for('listings') }}">Listings</a><br>

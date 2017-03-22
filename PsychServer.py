@@ -237,7 +237,11 @@ def all_students():
                 .filter(Users.user_role == 1) \
                 .group_by(Users.user_id) \
                 .all()
-            return render_template('all_students.html', listings=students)
+            s_listings = []
+            for x in students:
+                d = {'user_email': x[0], 'credits_earned': x[1]}
+                s_listings.append(d)
+            return render_template('all_students.html', listings=s_listings)
     if request.method == 'POST':
         return render_template('all_students.html')
 
