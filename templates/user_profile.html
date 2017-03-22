@@ -9,24 +9,24 @@
         {% if current_user.role == 'student' %}
             You have completed {{ credits_completed }} credits.
             {% for l in listings %}
-                <li>{{ l[0] }} {{ l[1] }} {{ l[3] }} {{ l[4] }} {{ l[5] }} {{ l[6] }} {{ l[7] }}</li>
+                <li>{{ l['facilitator_email'] }} {{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['start_time'] }} {{ l['end_time'] }} {{ l['is_completed'] }}</li>
             {% endfor %}<br>
             {% for cl in completed_listings %}
-                <li>{{ cl[0] }} {{ cl[1] }} {{ cl[3] }} {{ cl[4] }} {{ cl[5] }} {{ cl[6] }} {{ cl[7] }}</li>
+                <li>{{ cl['facilitator_email'] }} {{ cl['research_name'] }} {{ cl['research_description'] }} {{ cl['research_credits'] }} {{ cl['start_time'] }} {{ cl['end_time'] }} {{ cl['is_completed'] }}</li>
             {% endfor %}
         {% endif %}
         {% if current_user.role == 'professor' %}
             {% for l in listings %}
-                <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }}</li>
+                <li>{{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['available_slots'] }} {{ l['start_time'] }} {{ l['end_time'] }}</li>
             {% endfor %}
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
         {% if current_user.role == 'admin' %}
             {% for l in listings %}
-                <li>{{ l[0] }} {{ l[1] }} {{ l[2] }} {{ l[3] }} {{ l[4] }} {{ l[5] }}</li>
+                <li>{{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['available_slots'] }} {{ l['start_time'] }} {{ l['end_time'] }}</li>
             {% endfor %}<br>
             {% for ol in other_listings %}
-                <li>{{ ol[0] }} {{ ol[1] }} {{ ol[2] }} {{ ol[3] }} {{ ol[4] }} {{ ol[5] }}</li>
+                <li>{{ ol['research_name'] }} {{ ol['research_description'] }} {{ ol['research_credits'] }} {{ ol['available_slots'] }} {{ ol['start_time'] }} {{ ol['end_time'] }}</li>
             {% endfor %}
             <a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
             <a href="{{ url_for('all_students') }}">All Students</a><br>

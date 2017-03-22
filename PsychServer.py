@@ -88,6 +88,11 @@ def user_profile():
             enrolled_listings = db.session.query(Users.user_email, initial_enrolled_listings) \
                 .join(initial_enrolled_listings, Users.user_id == initial_enrolled_listings.c.ResearchFacilitator) \
                 .all()
+            e_listings = []
+            for x in enrolled_listings:
+                d = {'facilitator_email': x[0], 'research_name': x[1], 'research_description': x[3],
+                     'research_credits': x[4], 'start_time': x[5], 'end_time': x[6], 'is_completed': x[7]}
+                e_listings.append(d)
             initial_completed_listings = db.session.query(Research.research_name, Research.research_facilitator,
                                                           Research.research_description, Research.research_credits,
                                                           ResearchSlot.start_time, ResearchSlot.end_time,
@@ -101,6 +106,11 @@ def user_profile():
             completed_listings = db.session.query(Users.user_email, initial_completed_listings) \
                 .join(initial_completed_listings, Users.user_id == initial_completed_listings.c.ResearchFacilitator) \
                 .all()
+            c_listings = []
+            for x in completed_listings:
+                d = {'facilitator_email': x[0], 'research_name': x[1], 'research_description': x[3],
+                     'research_credits': x[4], 'start_time': x[5], 'end_time': x[6], 'is_completed': x[7]}
+                c_listings.append(d)
             student_credits = db.session.query(Users.user_id, Research.research_credits) \
                 .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
@@ -114,8 +124,8 @@ def user_profile():
                 .filter(Users.user_email == current_user.id) \
                 .group_by(Users.user_id) \
                 .scalar()
-            return render_template('user_profile.html', credits_completed=credits_completed, listings=enrolled_listings,
-                                   completed_listings=completed_listings)
+            return render_template('user_profile.html', credits_completed=credits_completed, listings=e_listings,
+                                   completed_listings=c_listings)
         elif current_user.role == 'professor':
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
@@ -130,7 +140,12 @@ def user_profile():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(Users.user_email == current_user.id) \
                 .all()
-            return render_template('user_profile.html', listings=final_listings)
+            f_listings = []
+            for x in final_listings:
+                d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
+                     'available_slots': x[3], 'start_time': x[4], 'end_time': x[5]}
+                f_listings.append(d)
+            return render_template('user_profile.html', listings=f_listings)
         elif current_user.role == 'admin':
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
@@ -145,6 +160,11 @@ def user_profile():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(Users.user_email == current_user.id) \
                 .all()
+            f_listings = []
+            for x in final_listings:
+                d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
+                     'available_slots': x[3], 'start_time': x[4], 'end_time': x[5]}
+                f_listings.append(d)
             other_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
                                               ResearchSlot.research_slot_openings - counts.c.Occupied,
@@ -154,7 +174,12 @@ def user_profile():
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
                 .filter(Users.user_email != current_user.id) \
                 .all()
-            return render_template('user_profile.html', listings=final_listings, other_listings=other_listings)
+            o_listings = []
+            for x in other_listings:
+                d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
+                     'available_slots': x[3], 'start_time': x[4], 'end_time': x[5]}
+                o_listings.append(d)
+            return render_template('user_profile.html', listings=f_listings, other_listings=o_listings)
     if request.method == 'POST':
         return render_template('user_profile.html')
     return render_template('user_profile.html')
