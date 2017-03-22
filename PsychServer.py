@@ -165,7 +165,7 @@ def listings():
     if request.method == 'GET':
         counts = db.session.query(ResearchSlot.research_slot_id,
                                   db.func.count(StudentResearch.student_research_id).label('Occupied')) \
-            .outerjoin(StudentResearch) \
+            .outerjoin(StudentResearch, ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
             .group_by(ResearchSlot.research_slot_id).subquery()
         final_listings = db.session.query(Research.research_name, Research.research_description,
                                           Research.research_credits, Users.user_email,
@@ -176,6 +176,7 @@ def listings():
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
             .filter((ResearchSlot.research_slot_openings - counts.c.Occupied) > 0) \
+            .filter(Research.is_deleted or not Research.is_visible) \
             .all()
         token_listings = []
         for fl in final_listings:
@@ -233,12 +234,15 @@ def join_study():
                 .filter(StudentResearch.user_id == Users.user_id) \
                 .filter(Users.user_email == user_email) \
                 .scalar()
-            same_study = db.session.query(db.func.count(['*'])) \
+            pre_same_study = db.session.query(ResearchSlot.research_id)\
+                .filter(ResearchSlot.research_slot_id == slot_id) \
+                .scalar()
+            same_study = db.session.query(db.func.count()) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
                 .filter(StudentResearch.user_id == Users.user_id) \
-                .filter(StudentResearch.student_research_id == slot_id) \
                 .filter(Users.user_email == user_email) \
+                .filter(Research.research_id == pre_same_study) \
                 .scalar()
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
