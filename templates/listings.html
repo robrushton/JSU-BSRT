@@ -8,15 +8,15 @@
         Logged in with {{ current_user.id }}<br>
         {% if current_user.role == 'student' %}
             {% for li in listings %}
-                <form method="post" action="{{ url_for('join_study') }}"><br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
-                    <input type="hidden" name="id" value="{{ li[7] }}" />
-                    <input type="hidden" name="token" value="{{ li[8] }}" />
+                <form method="post" action="{{ url_for('join_study') }}"><br>{{ li['research_name'] }} {{ li['ersearch_description'] }} {{ li['research_credits'] }} {{ li['user_email'] }} {{ li['start_time'] }} {{ li['end_time'] }} {{ li['available_slots'] }}
+                    <input type="hidden" name="id" value="{{ li['research_slot_id'] }}" />
+                    <input type="hidden" name="token" value="{{ li['token'] }}" />
                     <button type="submit">Join</button>
                 </form>
             {% endfor %}
         {% else %}
             {% for li in listings %}
-                <br>{{ li[0] }} {{ li[1] }} {{ li[2] }} {{ li[3] }} {{ li[4] }} {{ li[5] }} {{ li[6] }}
+                <br>{{ li['research_name'] }} {{ li['ersearch_description'] }} {{ li['research_credits'] }} {{ li['user_email'] }} {{ li['start_time'] }} {{ li['end_time'] }} {{ li['available_slots'] }}
             {% endfor %}
         {% endif %}
         <br>

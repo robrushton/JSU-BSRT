@@ -8,22 +8,22 @@
         Logged in with {{ current_user.id }}<br>
         {% if current_user.role == 'student' %}
             You have completed {{ credits_completed }} credits.
-            {% for l in listings %}
-                <li>{{ l['facilitator_email'] }} {{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['start_time'] }} {{ l['end_time'] }} {{ l['is_completed'] }}</li>
+            {% for li in listings %}
+                <li>{{ li['facilitator_email'] }} {{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['start_time'] }} {{ li['end_time'] }} {{ li['is_completed'] }}</li>
             {% endfor %}<br>
             {% for cl in completed_listings %}
                 <li>{{ cl['facilitator_email'] }} {{ cl['research_name'] }} {{ cl['research_description'] }} {{ cl['research_credits'] }} {{ cl['start_time'] }} {{ cl['end_time'] }} {{ cl['is_completed'] }}</li>
             {% endfor %}
         {% endif %}
         {% if current_user.role == 'professor' %}
-            {% for l in listings %}
-                <li>{{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['available_slots'] }} {{ l['start_time'] }} {{ l['end_time'] }}</li>
+            {% for li in listings %}
+                <li>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}</li>
             {% endfor %}
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
         {% if current_user.role == 'admin' %}
-            {% for l in listings %}
-                <li>{{ l['research_name'] }} {{ l['research_description'] }} {{ l['research_credits'] }} {{ l['available_slots'] }} {{ l['start_time'] }} {{ l['end_time'] }}</li>
+            {% for li in listings %}
+                <li>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}</li>
             {% endfor %}<br>
             {% for ol in other_listings %}
                 <li>{{ ol['research_name'] }} {{ ol['research_description'] }} {{ ol['research_credits'] }} {{ ol['available_slots'] }} {{ ol['start_time'] }} {{ ol['end_time'] }}</li>

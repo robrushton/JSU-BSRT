@@ -205,14 +205,13 @@ def listings():
             .filter(Research.is_visible == True) \
             .filter(Research.is_deleted == False) \
             .all()
-        token_listings = []
-        for fl in final_listings:
-            temp = []
-            for x in fl:
-                temp.append(x)
-            temp.append(generate_confirmation_token((current_user.id, temp[7]), Constants.LISTING_SALT, app.secret_key))
-            token_listings.append(temp)
-        return render_template('listings.html', listings=token_listings)
+        f_listings = []
+        for x in final_listings:
+            d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
+                 'user_email': x[3], 'start_time': x[4], 'end_time': x[5], 'available_slots': x[6],
+                 'research_slot_id': x[7], 'token': generate_confirmation_token((current_user.id, x[7]), Constants.LISTING_SALT, app.secret_key)}
+            f_listings.append(d)
+        return render_template('listings.html', listings=f_listings)
     if request.method == 'POST':
         return render_template('listings.html')
 
