@@ -76,27 +76,27 @@ def user_profile():
     if request.method == 'GET':
         if current_user.role == 'student':
             initial_enrolled_listings = db.session.query(Research.research_name, Research.research_facilitator,
-                                                Research.research_description, Research.research_credits,
-                                                ResearchSlot.start_time, ResearchSlot.end_time,
-                                                StudentResearch.is_completed) \
+                                                         Research.research_description, Research.research_credits,
+                                                         ResearchSlot.start_time, ResearchSlot.end_time,
+                                                         StudentResearch.is_completed) \
                 .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
-                .filter(StudentResearch.is_completed == False) \
+                .filter(StudentResearch.is_completed is False) \
                 .subquery()
             enrolled_listings = db.session.query(Users.user_email, initial_enrolled_listings) \
                 .join(initial_enrolled_listings, Users.user_id == initial_enrolled_listings.c.ResearchFacilitator) \
                 .all()
             initial_completed_listings = db.session.query(Research.research_name, Research.research_facilitator,
-                                                Research.research_description, Research.research_credits,
-                                                ResearchSlot.start_time, ResearchSlot.end_time,
-                                                StudentResearch.is_completed) \
+                                                          Research.research_description, Research.research_credits,
+                                                          ResearchSlot.start_time, ResearchSlot.end_time,
+                                                          StudentResearch.is_completed) \
                 .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
-                .filter(StudentResearch.is_completed == True) \
+                .filter(StudentResearch.is_completed is True) \
                 .subquery()
             completed_listings = db.session.query(Users.user_email, initial_completed_listings) \
                 .join(initial_completed_listings, Users.user_id == initial_completed_listings.c.ResearchFacilitator) \
@@ -111,7 +111,7 @@ def user_profile():
             credits_completed = db.session.query(db.func.sum(student_credits.c.ResearchCredits)) \
                 .filter(Users.user_id == student_credits.c.UserID) \
                 .filter(Users.user_role == 1) \
-                .filter(Users.user_email == current_user.id)\
+                .filter(Users.user_email == current_user.id) \
                 .group_by(Users.user_id) \
                 .scalar()
             return render_template('user_profile.html', credits_completed=credits_completed, listings=enrolled_listings,
@@ -122,8 +122,9 @@ def user_profile():
                 .outerjoin(StudentResearch) \
                 .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
-                                              Research.research_credits, ResearchSlot.research_slot_openings - counts.c.Occupied,
-                                              ResearchSlot.start_time, ResearchSlot.end_time)\
+                                              Research.research_credits,
+                                              ResearchSlot.research_slot_openings - counts.c.Occupied,
+                                              ResearchSlot.start_time, ResearchSlot.end_time) \
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
@@ -176,6 +177,8 @@ def listings():
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
             .filter((ResearchSlot.research_slot_openings - counts.c.Occupied) > 0) \
+            .filter(Research.is_visible is True) \
+            .filter(Research.is_deleted is False) \
             .all()
         token_listings = []
         for fl in final_listings:
@@ -228,12 +231,12 @@ def join_study():
         token = request.form.get('token')
         token_tuple = confirm_token(token, Constants.LISTING_SALT, app.secret_key)
         if token_tuple[0] == user_email and token_tuple[1] == slot_id:
-            already_enrolled = db.session.query(db.func.count(StudentResearch.student_research_id))\
+            already_enrolled = db.session.query(db.func.count(StudentResearch.student_research_id)) \
                 .filter(StudentResearch.research_slot_id == slot_id) \
                 .filter(StudentResearch.user_id == Users.user_id) \
                 .filter(Users.user_email == user_email) \
                 .scalar()
-            pre_same_study = db.session.query(ResearchSlot.research_id)\
+            pre_same_study = db.session.query(ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == slot_id) \
                 .scalar()
             same_study = db.session.query(db.func.count()) \
@@ -260,8 +263,8 @@ def join_study():
             elif openings == 0:
                 flash('That listing is already full. Refresh the page to see current listings.')
             else:
-                user_id = db.session.query(Users.user_id)\
-                    .filter(Users.user_email == user_email)\
+                user_id = db.session.query(Users.user_id) \
+                    .filter(Users.user_email == user_email) \
                     .scalar()
                 student_research = StudentResearch(user_id, slot_id)
                 db.session.add(student_research)
