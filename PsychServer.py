@@ -176,7 +176,6 @@ def listings():
             .filter(Research.research_id == ResearchSlot.research_id) \
             .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
             .filter((ResearchSlot.research_slot_openings - counts.c.Occupied) > 0) \
-            .filter(Research.is_deleted or not Research.is_visible) \
             .all()
         token_listings = []
         for fl in final_listings:
