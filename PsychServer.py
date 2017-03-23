@@ -6,7 +6,7 @@ from Utilities import generate_confirmation_token, confirm_token, send_email, ge
 from hashlib import sha256
 from DatabaseModels import Role, Users, Research, ResearchSlot, StudentResearch
 import Constants
-import pymysql
+import pymysql  #Do not delete this import. It is used to generate requirements.
 import os
 
 app = Flask(__name__)
