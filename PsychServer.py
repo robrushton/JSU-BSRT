@@ -375,25 +375,27 @@ def invite_professor():
     if request.method == 'POST':
         if current_user.role == 'admin':
             email = request.form.get('email')
-            if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
-                token = generate_confirmation_token(email, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
-                from_address = Constants.DEFAULT_EMAIL
-                to_address = email
-                subject = 'JSU Psychology Research Account Setup'
-                body = 'You have been invited by a {} Admin.\n\n' \
-                       'Click the link below to setup your account:\n\n' \
-                       'http://{}/signup/professor/{}' \
-                       '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.' \
-                    .format(Constants.APP_NAME, Constants.SERVER_IP, token)
-                email_text = 'From: {}\n' \
-                             'To: {}\n' \
-                             'Subject: {}\n\n' \
-                             '{}'.format(from_address, to_address, subject, body)
-                send_email(from_address, to_address, email_text)
-                return redirect(url_for('user_profile'))
+            if email.endswith('@jsu.edu'):
+                if db.session.query(Users.user_email).filter(Users.user_email == email).count() < 1:
+                    token = generate_confirmation_token(email, Constants.PROFESSOR_CONFIRM_SALT, app.secret_key)
+                    from_address = Constants.DEFAULT_EMAIL
+                    to_address = email
+                    subject = 'JSU Psychology Research Account Setup'
+                    body = 'You have been invited by a {} Admin.\n\n' \
+                           'Click the link below to setup your account:\n\n' \
+                           'http://{}/signup/professor/{}' \
+                           '\n\nDo not reply to this email. It is not monitored and all replies will be deleted.' \
+                        .format(Constants.APP_NAME, Constants.SERVER_IP, token)
+                    email_text = 'From: {}\n' \
+                                 'To: {}\n' \
+                                 'Subject: {}\n\n' \
+                                 '{}'.format(from_address, to_address, subject, body)
+                    send_email(from_address, to_address, email_text)
+                    return redirect(url_for('user_profile'))
+                else:
+                    flash('That email is already being used.')
             else:
-                flash('That email is already being used.')
-                return render_template('invite.html')
+                flash('The email must be a faculty email ending in @jsu.edu.')
         else:
             return redirect(url_for('user_profile'))
 
