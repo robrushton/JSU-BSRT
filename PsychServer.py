@@ -134,7 +134,8 @@ def user_profile():
         elif current_user.role == 'professor':
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
-                .outerjoin(StudentResearch) \
+                .outerjoin(StudentResearch, and_(ResearchSlot.research_slot_id == StudentResearch.research_slot_id,
+                                                 StudentResearch.is_dropped == False)) \
                 .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
@@ -154,7 +155,8 @@ def user_profile():
         elif current_user.role == 'admin':
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
-                .outerjoin(StudentResearch) \
+                .outerjoin(StudentResearch, and_(ResearchSlot.research_slot_id == StudentResearch.research_slot_id,
+                                                 StudentResearch.is_dropped == False)) \
                 .group_by(ResearchSlot.research_slot_id).subquery()
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
@@ -196,9 +198,9 @@ def listings():
     if request.method == 'GET':
         counts = db.session.query(ResearchSlot.research_slot_id,
                                   db.func.count(StudentResearch.student_research_id).label('Occupied')) \
-            .outerjoin(StudentResearch, and_(ResearchSlot.research_slot_id == StudentResearch.research_slot_id, StudentResearch.is_dropped == False)) \
+            .outerjoin(StudentResearch, and_(ResearchSlot.research_slot_id == StudentResearch.research_slot_id,
+                                             StudentResearch.is_dropped == False)) \
             .group_by(ResearchSlot.research_slot_id).subquery()
-        print(counts)
         final_listings = db.session.query(Research.research_name, Research.research_description,
                                           Research.research_credits, Users.user_email,
                                           ResearchSlot.start_time, ResearchSlot.end_time,
