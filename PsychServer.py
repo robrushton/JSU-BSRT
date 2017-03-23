@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import login_required, LoginManager, UserMixin, login_user, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_
 from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
     confirm_timed_token
 from hashlib import sha256
@@ -78,12 +79,14 @@ def user_profile():
             initial_enrolled_listings = db.session.query(Research.research_name, Research.research_facilitator,
                                                          Research.research_description, Research.research_credits,
                                                          ResearchSlot.start_time, ResearchSlot.end_time,
-                                                         StudentResearch.is_completed) \
+                                                         StudentResearch.is_completed,
+                                                         StudentResearch.student_research_id) \
                 .filter(Users.user_id == StudentResearch.user_id) \
                 .filter(Users.user_email == current_user.id) \
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
                 .filter(StudentResearch.is_completed == False) \
+                .filter(StudentResearch.is_dropped == False) \
                 .subquery()
             enrolled_listings = db.session.query(Users.user_email, initial_enrolled_listings) \
                 .join(initial_enrolled_listings, Users.user_id == initial_enrolled_listings.c.ResearchFacilitator) \
@@ -91,7 +94,8 @@ def user_profile():
             e_listings = []
             for x in enrolled_listings:
                 d = {'facilitator_email': x[0], 'research_name': x[1], 'research_description': x[3],
-                     'research_credits': x[4], 'start_time': x[5], 'end_time': x[6], 'is_completed': x[7]}
+                     'research_credits': x[4], 'start_time': x[5], 'end_time': x[6], 'is_completed': x[7],
+                     'student_research_id': x[8], 'token': generate_confirmation_token((current_user.id, x[8]), Constants.DROP_SALT, app.secret_key)}
                 e_listings.append(d)
             initial_completed_listings = db.session.query(Research.research_name, Research.research_facilitator,
                                                           Research.research_description, Research.research_credits,
@@ -102,6 +106,7 @@ def user_profile():
                 .filter(StudentResearch.research_slot_id == ResearchSlot.research_slot_id) \
                 .filter(ResearchSlot.research_id == Research.research_id) \
                 .filter(StudentResearch.is_completed == True) \
+                .filter(StudentResearch.is_dropped == False) \
                 .subquery()
             completed_listings = db.session.query(Users.user_email, initial_completed_listings) \
                 .join(initial_completed_listings, Users.user_id == initial_completed_listings.c.ResearchFacilitator) \
@@ -191,8 +196,9 @@ def listings():
     if request.method == 'GET':
         counts = db.session.query(ResearchSlot.research_slot_id,
                                   db.func.count(StudentResearch.student_research_id).label('Occupied')) \
-            .outerjoin(StudentResearch, ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
+            .outerjoin(StudentResearch, and_(ResearchSlot.research_slot_id == StudentResearch.research_slot_id, StudentResearch.is_dropped == False)) \
             .group_by(ResearchSlot.research_slot_id).subquery()
+        print(counts)
         final_listings = db.session.query(Research.research_name, Research.research_description,
                                           Research.research_credits, Users.user_email,
                                           ResearchSlot.start_time, ResearchSlot.end_time,
@@ -209,7 +215,7 @@ def listings():
         for x in final_listings:
             d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
                  'user_email': x[3], 'start_time': x[4], 'end_time': x[5], 'available_slots': x[6],
-                 'research_slot_id': x[7], 'token': generate_confirmation_token((current_user.id, x[7]), Constants.LISTING_SALT, app.secret_key)}
+                 'research_slot_id': x[7], 'token': generate_confirmation_token((current_user.id, x[7]), Constants.JOIN_SALT, app.secret_key)}
             f_listings.append(d)
         return render_template('listings.html', listings=f_listings)
     if request.method == 'POST':
@@ -257,11 +263,12 @@ def join_study():
         slot_id = int(request.form.get('id'))
         user_email = current_user.id
         token = request.form.get('token')
-        token_tuple = confirm_token(token, Constants.LISTING_SALT, app.secret_key)
+        token_tuple = confirm_token(token, Constants.JOIN_SALT, app.secret_key)
         if token_tuple[0] == user_email and token_tuple[1] == slot_id:
             already_enrolled = db.session.query(db.func.count(StudentResearch.student_research_id)) \
                 .filter(StudentResearch.research_slot_id == slot_id) \
                 .filter(StudentResearch.user_id == Users.user_id) \
+                .filter(StudentResearch.is_dropped == False) \
                 .filter(Users.user_email == user_email) \
                 .scalar()
             pre_same_study = db.session.query(ResearchSlot.research_id) \
@@ -273,6 +280,7 @@ def join_study():
                 .filter(StudentResearch.user_id == Users.user_id) \
                 .filter(Users.user_email == user_email) \
                 .filter(Research.research_id == pre_same_study) \
+                .filter(StudentResearch.is_dropped == False) \
                 .scalar()
             counts = db.session.query(ResearchSlot.research_slot_id,
                                       db.func.count(StudentResearch.student_research_id).label('Occupied')) \
@@ -303,6 +311,28 @@ def join_study():
         return redirect(url_for('listings'))
 
     return redirect(url_for('listings'))
+
+
+@app.route('/drop', methods=['GET', 'POST'])
+def drop_study():
+    if request.method == 'GET':
+        return redirect(url_for('user_profile'))
+    if request.method == 'POST':
+        slot_id = int(request.form.get('id'))
+        user_email = current_user.id
+        token = request.form.get('token')
+        token_tuple = confirm_token(token, Constants.DROP_SALT, app.secret_key)
+        if token_tuple[0] == user_email and token_tuple[1] == slot_id:
+            stu_res = db.session.query(StudentResearch)\
+                .filter(StudentResearch.student_research_id == slot_id)\
+                .first()
+            stu_res.is_dropped = True
+            db.session.commit()
+            return redirect(url_for('user_profile'))
+        else:
+            flash('An error occurred. Refresh the page and try again.')
+
+    return redirect(url_for('user_profile'))
 
 
 @app.route('/login', methods=['GET', 'POST'])

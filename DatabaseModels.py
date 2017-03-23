@@ -75,6 +75,7 @@ class StudentResearch(db.Model):
     user_id = db.Column('UserID', db.BIGINT, db.ForeignKey(Users.user_id), nullable=False)
     research_slot_id = db.Column('ResearchSlotID', db.BIGINT, db.ForeignKey(ResearchSlot.research_id), nullable=False)
     is_completed = db.Column('IsCompleted', db.BOOLEAN, default=False)
+    is_dropped = db.Column('IsDropped', db.BOOLEAN, default=False)
     created_on = db.Column('CreatedOn', db.DATETIME, server_default=db.func.current_timestamp(), nullable=False)
 
     def __init__(self, uid, slot_id):
