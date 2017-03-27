@@ -18,13 +18,18 @@
             {% endfor %}<br>
             {% for cl in completed_listings %}
                 <br>{{ cl['facilitator_email'] }} {{ cl['research_name'] }} {{ cl['research_description'] }} {{ cl['research_credits'] }} {{ cl['start_time'] }} {{ cl['end_time'] }} {{ cl['is_completed'] }}
-            {% endfor %}
+            {% endfor %}<br>
         {% endif %}
         {% if current_user.role == 'professor' %}
             {% for li in listings %}
                 <br>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}
                 {% for e in li['enrolled_students'] %}
-                    <br>{{ e[0] }}
+                    <form method="post" action="{{ url_for('confirm_participation') }}">
+                    <br>{{ e['student_email'] }}
+                    <input type="hidden" name="id" value="{{ e['slot_id'] }}" />
+                    <input type="hidden" name="token" value="{{ e['token'] }}" />
+                    <button type="submit">Confirm Participation</button>
+                </form>
                 {% endfor %}
             {% endfor %}
             <br><a href="{{ url_for('all_students') }}">All Students</a><br>
@@ -33,13 +38,23 @@
             {% for li in listings %}
                 <br>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}
                 {% for e in li['enrolled_students'] %}
-                    <br>{{ e[0] }}
+                    <form method="post" action="{{ url_for('confirm_participation') }}">
+                    <br>{{ e['student_email'] }}
+                    <input type="hidden" name="id" value="{{ e['slot_id'] }}" />
+                    <input type="hidden" name="token" value="{{ e['token'] }}" />
+                    <button type="submit">Confirm Participation</button>
+                </form>
                 {% endfor %}
             {% endfor %}<br>
             {% for ol in other_listings %}
                 <br>{{ ol['research_name'] }} {{ ol['research_description'] }} {{ ol['research_credits'] }} {{ ol['available_slots'] }} {{ ol['start_time'] }} {{ ol['end_time'] }}
                 {% for e in ol['enrolled_students'] %}
-                    <br>{{ e[0] }}
+                    <form method="post" action="{{ url_for('confirm_participation') }}">
+                    <br>{{ e['student_email'] }}
+                    <input type="hidden" name="id" value="{{ e['slot_id'] }}" />
+                    <input type="hidden" name="token" value="{{ e['token'] }}" />
+                    <button type="submit">Confirm Participation</button>
+                </form>
                 {% endfor %}
             {% endfor %}
             <br><a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>

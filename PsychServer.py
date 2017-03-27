@@ -129,6 +129,8 @@ def user_profile():
                 .filter(Users.user_email == current_user.id) \
                 .group_by(Users.user_id) \
                 .scalar()
+            if credits_completed is None:
+                credits_completed = 0
             return render_template('user_profile.html', credits_completed=credits_completed, listings=e_listings,
                                    completed_listings=c_listings)
         elif current_user.role == 'professor':
@@ -155,8 +157,13 @@ def user_profile():
                     .filter(StudentResearch.user_id == Users.user_id)\
                     .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id)\
                     .filter(ResearchSlot.research_slot_id == x[6])\
+                    .filter(StudentResearch.is_completed == False) \
                     .all()
-                d['enrolled_students'] = students
+                final_students = []
+                for s in students:
+                    temp = {'student_email': s[0], 'slot_id': x[6], 'token': generate_confirmation_token((current_user.id, x[6], s[0]), Constants.PARTICIPATION_SALT, app.secret_key)}
+                    final_students.append(temp)
+                d['enrolled_students'] = final_students
                 f_listings.append(d)
             return render_template('user_profile.html', listings=f_listings)
         elif current_user.role == 'admin':
@@ -277,11 +284,9 @@ def all_students():
     return render_template('all_students.html')
 
 
-@app.route('/join', methods=['GET', 'POST'])
+@app.route('/join', methods=['POST'])
 @login_required
 def join_study():
-    if request.method == 'GET':
-        return redirect(url_for('listings'))
     if request.method == 'POST':
         slot_id = int(request.form.get('id'))
         user_email = current_user.id
@@ -333,13 +338,9 @@ def join_study():
             flash('An error occurred. Refresh the page and try again.')
         return redirect(url_for('listings'))
 
-    return redirect(url_for('listings'))
 
-
-@app.route('/drop', methods=['GET', 'POST'])
+@app.route('/drop', methods=['POST'])
 def drop_study():
-    if request.method == 'GET':
-        return redirect(url_for('user_profile'))
     if request.method == 'POST':
         slot_id = int(request.form.get('id'))
         user_email = current_user.id
@@ -355,7 +356,28 @@ def drop_study():
         else:
             flash('An error occurred. Refresh the page and try again.')
 
-    return redirect(url_for('user_profile'))
+
+@app.route('/participation', methods=['POST'])
+def confirm_participation():
+    if request.method == 'POST':
+        slot_id = int(request.form.get('id'))
+        user_email = current_user.id
+        token = request.form.get('token')
+        token_tuple = confirm_token(token, Constants.PARTICIPATION_SALT, app.secret_key)
+        if token_tuple[0] == user_email and token_tuple[1] == slot_id:
+            student_email = token_tuple[2]
+            stu_id = db.session.query(Users.user_id)\
+                .filter(Users.user_email == student_email)\
+                .scalar()
+            stu_res = db.session.query(StudentResearch) \
+                .filter(StudentResearch.research_slot_id == slot_id) \
+                .filter(StudentResearch.user_id == stu_id) \
+                .first()
+            stu_res.is_completed = True
+            db.session.commit()
+            return redirect(url_for('user_profile'))
+        else:
+            flash('An error occurred. Refresh the page and try again.')
 
 
 @app.route('/login', methods=['GET', 'POST'])
