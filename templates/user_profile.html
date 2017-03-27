@@ -23,8 +23,11 @@
         {% if current_user.role == 'professor' %}
             {% for li in listings %}
                 <br>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}
+                {% for e in li['enrolled_students'] %}
+                    <br>{{ e[0] }}
+                {% endfor %}
             {% endfor %}
-            <a href="{{ url_for('all_students') }}">All Students</a><br>
+            <br><a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
         {% if current_user.role == 'admin' %}
             {% for li in listings %}
@@ -36,8 +39,6 @@
             <a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
-        <br>
-        <br>
         <a href="{{ url_for('listings') }}">Listings</a><br>
         <a href="{{ url_for('logout') }}">Logout</a><br>
         <div class="flash-messages">
