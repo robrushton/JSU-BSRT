@@ -190,6 +190,7 @@ def user_profile():
                     .filter(StudentResearch.user_id == Users.user_id) \
                     .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
                     .filter(ResearchSlot.research_slot_id == x[6]) \
+                    .filter(StudentResearch.is_completed == False) \
                     .all()
                 d['enrolled_students'] = students
                 f_listings.append(d)
