@@ -32,11 +32,17 @@
         {% if current_user.role == 'admin' %}
             {% for li in listings %}
                 <br>{{ li['research_name'] }} {{ li['research_description'] }} {{ li['research_credits'] }} {{ li['available_slots'] }} {{ li['start_time'] }} {{ li['end_time'] }}
+                {% for e in li['enrolled_students'] %}
+                    <br>{{ e[0] }}
+                {% endfor %}
             {% endfor %}<br>
             {% for ol in other_listings %}
                 <br>{{ ol['research_name'] }} {{ ol['research_description'] }} {{ ol['research_credits'] }} {{ ol['available_slots'] }} {{ ol['start_time'] }} {{ ol['end_time'] }}
+                {% for e in ol['enrolled_students'] %}
+                    <br>{{ e[0] }}
+                {% endfor %}
             {% endfor %}
-            <a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
+            <br><a href="{{ url_for('invite_professor') }}">Invite Professor</a><br>
             <a href="{{ url_for('all_students') }}">All Students</a><br>
         {% endif %}
         <a href="{{ url_for('listings') }}">Listings</a><br>

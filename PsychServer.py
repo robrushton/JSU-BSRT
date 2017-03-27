@@ -168,7 +168,8 @@ def user_profile():
             final_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
                                               ResearchSlot.research_slot_openings - counts.c.Occupied,
-                                              ResearchSlot.start_time, ResearchSlot.end_time) \
+                                              ResearchSlot.start_time, ResearchSlot.end_time,
+                                              ResearchSlot.research_slot_id) \
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
@@ -178,11 +179,18 @@ def user_profile():
             for x in final_listings:
                 d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
                      'available_slots': x[3], 'start_time': x[4], 'end_time': x[5]}
+                students = db.session.query(Users.user_email) \
+                    .filter(StudentResearch.user_id == Users.user_id) \
+                    .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
+                    .filter(ResearchSlot.research_slot_id == x[6]) \
+                    .all()
+                d['enrolled_students'] = students
                 f_listings.append(d)
             other_listings = db.session.query(Research.research_name, Research.research_description,
                                               Research.research_credits,
                                               ResearchSlot.research_slot_openings - counts.c.Occupied,
-                                              ResearchSlot.start_time, ResearchSlot.end_time) \
+                                              ResearchSlot.start_time, ResearchSlot.end_time,
+                                              ResearchSlot.research_slot_id) \
                 .filter(Research.research_facilitator == Users.user_id) \
                 .filter(Research.research_id == ResearchSlot.research_id) \
                 .filter(ResearchSlot.research_slot_id == counts.c.ResearchSlotID) \
@@ -192,6 +200,12 @@ def user_profile():
             for x in other_listings:
                 d = {'research_name': x[0], 'research_description': x[1], 'research_credits': x[2],
                      'available_slots': x[3], 'start_time': x[4], 'end_time': x[5]}
+                students = db.session.query(Users.user_email) \
+                    .filter(StudentResearch.user_id == Users.user_id) \
+                    .filter(ResearchSlot.research_slot_id == StudentResearch.research_slot_id) \
+                    .filter(ResearchSlot.research_slot_id == x[6]) \
+                    .all()
+                d['enrolled_students'] = students
                 o_listings.append(d)
             return render_template('user_profile.html', listings=f_listings, other_listings=o_listings)
     if request.method == 'POST':
