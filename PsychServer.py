@@ -549,7 +549,7 @@ def professor_signup(token):
                 if len(password) < 8:
                     flash('Your password must be at least 8 characters long.')
                 if len(password) > 512:
-                    flash('You password must be shorter than 512 characters.')
+                    flash('Your password must be shorter than 512 characters.')
                 if password != confirm_password:
                     flash('Your passwords did not match.')
                 else:
