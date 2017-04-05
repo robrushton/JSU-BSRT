@@ -358,6 +358,54 @@ def drop_study():
             flash('An error occurred. Refresh the page and try again.')
 
 
+@app.route('/newstudy', methods=['POST'])
+def new_study():
+    if request.method == 'POST':
+        r = request
+        email = r.form.get('user-email')
+        research_name = r.form.get('research-name')
+        research_description = r.form.get('research-description')
+        research_credits = r.form.get('research-credits')
+        curr_start = r.form.get('start-1')
+        curr_end = r.form.get('end-1')
+        curr_openings = r.form.get('openings-1')
+        if email != current_user.id:
+            flash('There seems to have been an error. Refresh the page and try again.')
+        if email.endswith('@test.com') is False:
+            flash('You must be a faculty member to create a study.')
+        if len(research_name.strip()) > 100 or len(research_name.strip()) < 1:
+            flash('You must enter a research name between 1-100 characters long.')
+        if len(research_description.strip()) > 500 or len(research_description.strip()) < 1:
+            flash('You must enter a research description between 1-500 characters long.')
+        if research_credits == '':
+            flash('You must enter an amount for research credits.')
+        elif int(research_credits) < 1:
+            flash('A research study must be worth at least one credit.')
+        if curr_start == '' or curr_end == '' or curr_openings == '':
+            flash('At least one time slot needs to be filled out.')
+        else:
+            start_times = []
+            end_times = []
+            openings = []
+            count = 1
+            while curr_start != '' and curr_end != '' and curr_openings != '':
+                start_times.append(r.form.get('start-{}'.format(count)))
+                end_times.append(r.form.get('end-{}'.format(count)))
+                openings.append(r.form.get('openings-{}'.format(count)))
+                count += 1
+                curr_start = r.form.get('start-{}'.format(count))
+                curr_end = r.form.get('end-{}'.format(count))
+                curr_openings = r.form.get('openings-{}'.format(count))
+            print('g2g')
+            print(email, research_name, research_credits)
+            print(research_description)
+            print(start_times)
+            print(end_times)
+            print(openings)
+
+        return redirect(url_for('user_profile'))
+
+
 @app.route('/participation', methods=['POST'])
 def confirm_participation():
     if request.method == 'POST':
