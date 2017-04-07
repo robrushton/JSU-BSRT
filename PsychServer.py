@@ -71,7 +71,7 @@ def index():
     return redirect(url_for('user_profile'))
 
 
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route('/profile')
 @login_required
 def user_profile():
     if request.method == 'GET':
@@ -216,12 +216,11 @@ def user_profile():
                 d['enrolled_students'] = students
                 o_listings.append(d)
             return render_template('user_profile.html', listings=f_listings, other_listings=o_listings)
-    if request.method == 'POST':
+    else:
         return render_template('user_profile.html')
-    return render_template('user_profile.html')
 
 
-@app.route('/listings', methods=['GET', 'POST'])
+@app.route('/listings')
 @login_required
 def listings():
     if request.method == 'GET':
@@ -249,13 +248,11 @@ def listings():
                  'research_slot_id': x[7], 'token': generate_confirmation_token((current_user.id, x[7]), Constants.JOIN_SALT, app.secret_key)}
             f_listings.append(d)
         return render_template('listings.html', listings=f_listings)
-    if request.method == 'POST':
+    else:
         return render_template('listings.html')
 
-    return render_template('listings.html')
 
-
-@app.route('/students', methods=['GET', 'POST'])
+@app.route('/students')
 @login_required
 def all_students():
     if request.method == 'GET':
@@ -279,10 +276,8 @@ def all_students():
                 d = {'user_email': x[0], 'credits_earned': x[1]}
                 s_listings.append(d)
             return render_template('all_students.html', listings=s_listings)
-    if request.method == 'POST':
+    else:
         return render_template('all_students.html')
-
-    return render_template('all_students.html')
 
 
 @app.route('/join', methods=['POST'])
@@ -656,6 +651,10 @@ def reset_password(token):
             if db.session.query(Users.user_email).filter(Users.user_email == email).count() == 1:
                 password = request.form.get('password')
                 confirm_password = request.form.get('confirm-password')
+                if len(password) < 8:
+                    flash('Your password must be at least 8 characters.')
+                if len(password) > 512:
+                    flash('You password must be shorter than 512 characters.')
                 if password != confirm_password:
                     flash('Your passwords did not match.')
                 else:
