@@ -357,6 +357,7 @@ def drop_study():
 def new_study():
     if request.method == 'POST':
         r = request
+        print(r.form)
         email = r.form.get('user-email')
         research_name = r.form.get('research-name')
         research_description = r.form.get('research-description')
@@ -383,7 +384,7 @@ def new_study():
             end_times = []
             openings = []
             count = 1
-            while curr_start != '' and curr_end != '' and curr_openings != '':
+            while (curr_start is not None) and (curr_end is not None) and (curr_openings is not None):
                 start_times.append(r.form.get('start-{}'.format(count)))
                 end_times.append(r.form.get('end-{}'.format(count)))
                 openings.append(r.form.get('openings-{}'.format(count)))
