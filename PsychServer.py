@@ -3,7 +3,7 @@ from flask_login import login_required, LoginManager, UserMixin, login_user, log
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_
 from Utilities import generate_confirmation_token, confirm_token, send_email, generate_timed_confirmation_token, \
-    confirm_timed_token
+    confirm_timed_token, truncate_datetime_year
 from hashlib import sha256
 from DatabaseModels import Role, Users, Research, ResearchSlot, StudentResearch
 import Constants
@@ -336,6 +336,7 @@ def join_study():
 
 
 @app.route('/drop', methods=['POST'])
+@login_required
 def drop_study():
     if request.method == 'POST':
         slot_id = int(request.form.get('id'))
@@ -354,6 +355,7 @@ def drop_study():
 
 
 @app.route('/newstudy', methods=['POST'])
+@login_required
 def new_study():
     if request.method == 'POST':
         r = request
@@ -392,17 +394,25 @@ def new_study():
                 curr_start = r.form.get('start-{}'.format(count))
                 curr_end = r.form.get('end-{}'.format(count))
                 curr_openings = r.form.get('openings-{}'.format(count))
-            print('g2g')
-            print(email, research_name, research_credits)
-            print(research_description)
-            print(start_times)
-            print(end_times)
-            print(openings)
+            faculty_id = db.session.query(Users.user_id).filter(Users.user_email == email).scalar()
+            research_study = Research(research_name, faculty_id, research_description, research_credits)
+            db.session.add(research_study)
+            db.session.flush()
+            rid = research_study.research_id
+            db.session.commit()
+            for i in range(len(start_times)):
+                temp_start = truncate_datetime_year(start_times[i])
+                temp_end = truncate_datetime_year(end_times[i])
+                slot = ResearchSlot(rid, openings[i], temp_start, temp_end)
+                db.session.add(slot)
+                db.session.commit()
+            flash('Your research study has been created.')
 
         return redirect(url_for('user_profile'))
 
 
 @app.route('/participation', methods=['POST'])
+@login_required
 def confirm_participation():
     if request.method == 'POST':
         slot_id = int(request.form.get('id'))
@@ -669,6 +679,7 @@ def reset_password(token):
 
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))

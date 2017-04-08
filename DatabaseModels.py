@@ -45,12 +45,11 @@ class Research(db.Model):
     is_deleted = db.Column('IsDeleted', db.BOOLEAN, default=False)
     created_on = db.Column('CreatedOn', db.DATETIME, server_default=db.func.current_timestamp(), nullable=False)
 
-    def __init__(self, name, facilitator, description, research_credits, openings):
+    def __init__(self, name, facilitator, description, research_credits):
         self.research_name = name
         self.research_facilitator = facilitator
         self.research_description = description
         self.research_credits = research_credits
-        self.research_openings = openings
 
 
 class ResearchSlot(db.Model):

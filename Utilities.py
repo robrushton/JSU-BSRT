@@ -39,3 +39,15 @@ def send_email(from_address, to_address, email_text):
     server.login(Constants.EMAIL_USERNAME, Constants.EMAIL_PASSWORD)
     server.sendmail(from_address, to_address, email_text)
     server.quit()
+
+
+def truncate_datetime_year(datetime):
+    date = datetime.split('T')[0]
+    time = datetime.split('T')[1]
+    year = date.split('-')[0]
+    month = date.split('-')[1]
+    day = date.split('-')[2]
+    if len(year) > 4:
+        return '{}-{}-{} {}'.format(year[:4], month, day, time)
+    else:
+        return datetime.replace('T', ' ')
