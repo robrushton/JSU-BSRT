@@ -359,7 +359,6 @@ def drop_study():
 def new_study():
     if request.method == 'POST':
         r = request
-        print(r.form)
         email = r.form.get('user-email')
         research_name = r.form.get('research-name')
         research_description = r.form.get('research-description')
