@@ -428,6 +428,7 @@ def confirm_participation():
                 .filter(StudentResearch.user_id == stu_id) \
                 .first()
             stu_res.is_completed = True
+            stu_res.completed_on = db.func.current_timestamp()
             db.session.commit()
             return redirect(url_for('user_profile'))
         else:
