@@ -363,6 +363,8 @@ def new_study():
         research_name = r.form.get('research-name')
         research_description = r.form.get('research-description')
         research_credits = r.form.get('research-credits')
+        if len(research_credits) == 0:
+            research_credits = 0
         curr_start = r.form.get('start-1')
         curr_end = r.form.get('end-1')
         curr_openings = r.form.get('openings-1')
@@ -374,11 +376,11 @@ def new_study():
             flash('You must enter a research name between 1-100 characters long.')
         if len(research_description.strip()) > 500 or len(research_description.strip()) < 1:
             flash('You must enter a research description between 1-500 characters long.')
-        if research_credits == '':
+        if research_credits in ['', ' ', None]:
             flash('You must enter an amount for research credits.')
         elif int(research_credits) < 1:
             flash('A research study must be worth at least one credit.')
-        if curr_start == '' or curr_end == '' or curr_openings == '':
+        elif curr_start == '' or curr_end == '' or curr_openings == '':
             flash('At least one time slot needs to be filled out.')
         else:
             start_times = []
