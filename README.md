@@ -4,5 +4,5 @@
 ## JSU Behavioral Science Research Tracker
 
 ### Currently Unfinished
- - Missing time slot/research editing
- - Missing "delete" time slots/research
+- Missing time slot/research editing
+- Missing "delete" time slots/research
